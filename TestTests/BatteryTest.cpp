@@ -49,7 +49,7 @@ void BatteryTest::beginTest(boolean scheduled)
 
 void BatteryTest::endTest()
 {
-	ElectronicLoad::connectBattery(-1);
+	ElectronicLoad::connectBattery(0);
 	
 	if ((emailReport == REPORT_MAIL_ONFAIL && testFailed) || emailReport == REPORT_MAIL_ONFINISHED)
 	{

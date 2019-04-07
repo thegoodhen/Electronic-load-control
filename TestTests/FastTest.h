@@ -22,7 +22,7 @@ public:
 private:
 	Communicator* comm;
 	Container* cont;
-	float loadCurrent;
+	float loadCurrent=20;
 	float scheduledLoadCurrent;
 	int reportResults() override;
 	void startTestCallback(int user);

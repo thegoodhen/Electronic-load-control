@@ -43,7 +43,7 @@ protected:
 	boolean lastRunPassed;//whether the battery passed the last test
 	int phase;//which phase (step) the test is in currently
 	int state=0;//which state is the test in
-	int batteryNo=0;//which battery should be tested;
+	int batteryNo=1;//which battery should be tested;
 	int emailReport = REPORT_MAIL_ONFINISHED;
 	bool wasThisRunScheduled;//whether the current run is a result of automatic scheduling (true) or was initiated manually by the user (false)
 	boolean testFailed=0;//whether the test succeeded (false) or not (true)

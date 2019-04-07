@@ -12,12 +12,17 @@
 #define BATTERY_NONE -1;
 
 #include "Arduino.h"
+#include <SPISlave.h>
 
 class ElectronicLoad
 {
 protected:
 	static boolean isResultFresh;
 	static unsigned long lastQueryTimestamp ;
+	static int spiInIndex ;//index for the incoming data
+	static int spiOutIndex ; //index for the outgoing data
+	static uint8_t spiDataOut[32];
+	static volatile boolean dataSent ;
 public:
 	static int connectedBattery;
 	static int setI(float theI);
@@ -25,7 +30,16 @@ public:
 	static int getI(float* target);
 	static int getU(float* target);
 	static int getT(float* target);
+	static void queueFloat(float f);
+	static void queueByte(byte b);
+	static int sendData(uint8_t * data, int len, unsigned long timeout);
+	static int sendData(uint8_t * data, int len);
+	static void onData(uint8_t * data, size_t len);
+	static void onDataSent();
+	static void begin();
 	static int connectBattery(int batteryNo);
+	static uint8_t calcCheckSum(uint8_t * data);
+	static boolean isChksumOk(uint8_t * data);
 	static int getState();//the current state of the load
     static void recordLastQueryTimestamp();
 };

@@ -100,6 +100,7 @@ void setup()
   //Serial.println("Ted to ma vypsat tu trojku...");
   //Serial.println(s);
 
+  ElectronicLoad::begin();
   initGUI();
 }
 

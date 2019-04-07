@@ -67,12 +67,14 @@ void FastTest::handle()
 			{
 				ElectronicLoad::getI(&currentI);
 				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
-				ch->addPoint(ALL_CLIENTS, 0, it++, currentI);
+				float arr[] = {it++,currentI};
+				ch->addPoint(ALL_CLIENTS, arr,2);
 			}
 
 			if (millis() - startMillis > 15000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
 				Serial.println("entering the recovery phase...");
+				int state=ElectronicLoad::connectBattery(0);
 				phase = PHASE_RECOVERY;
 				return;
 			}
