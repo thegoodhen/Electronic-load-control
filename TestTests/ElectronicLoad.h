@@ -23,6 +23,8 @@ protected:
 	static int spiOutIndex ; //index for the outgoing data
 	static uint8_t spiDataOut[32];
 	static volatile boolean dataSent ;
+	static float I;
+	static float U;
 public:
 	static int connectedBattery;
 	static int setI(float theI);
@@ -30,12 +32,15 @@ public:
 	static int getI(float* target);
 	static int getU(float* target);
 	static int getT(float* target);
+	static float parseSPIFloat(uint8_t * data);
+	static byte parseSPIByte(uint8_t * data);
 	static void queueFloat(float f);
 	static void queueByte(byte b);
 	static int sendData(uint8_t * data, int len, unsigned long timeout);
 	static int sendData(uint8_t * data, int len);
 	static void onData(uint8_t * data, size_t len);
 	static void onDataSent();
+	static boolean areNewReadingsReady();
 	static void begin();
 	static int connectBattery(int batteryNo);
 	static uint8_t calcCheckSum(uint8_t * data);

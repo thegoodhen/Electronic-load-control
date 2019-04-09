@@ -1,13 +1,35 @@
 #include "ElectronicLoad.h"
 int ElectronicLoad::connectedBattery = -1;
+boolean ElectronicLoad::isResultFresh = false;
 unsigned long ElectronicLoad::lastQueryTimestamp =0;
 int ElectronicLoad::spiInIndex = 0;
 int ElectronicLoad::spiOutIndex = 0;
 volatile boolean ElectronicLoad::dataSent= false;
 
+float ElectronicLoad::I = 0;
+float ElectronicLoad::U = 0;
+
 uint8_t ElectronicLoad::spiDataOut[32];
 
 
+
+
+float ElectronicLoad::parseSPIFloat(uint8_t* data)
+{
+  int startIndex = spiInIndex;
+  byte floatBytes[4];
+  for (int i = 0; i < 4; i++)
+  {
+    floatBytes[i] = data[startIndex + i];
+  }
+  spiInIndex += 4;
+  return *((float*)(floatBytes));
+}
+
+byte ElectronicLoad::parseSPIByte(uint8_t* data)
+{
+  return data[spiInIndex++];
+}
 
 /**
       Schedule a float to be sent over SPI
@@ -79,16 +101,19 @@ int ElectronicLoad::sendData(uint8_t* data, int len)
 void ElectronicLoad::onData(uint8_t* data, size_t len)
 {
     spiInIndex = 0;
+	isResultFresh = true;
 
-	/*
+	
     Serial.println(parseSPIByte(data));
-    Serial.println(parseSPIFloat(data));
-    Serial.println(parseSPIFloat(data));
+    U=parseSPIFloat(data);
+    I=parseSPIFloat(data);
+    //Serial.println(parseSPIFloat(data));
+    //Serial.println(parseSPIFloat(data));
     Serial.println("chksum ok?");
     //delay(1);//just as a test(FAILED, damnit...)
 
     Serial.println(isChksumOk(data));
-	*/
+	
 }
 
 void ElectronicLoad::onDataSent()
@@ -96,6 +121,17 @@ void ElectronicLoad::onDataSent()
     digitalWrite(D0, LOW);
     Serial.println("Answer Sent");
     dataSent = true;
+}
+
+
+boolean ElectronicLoad::areNewReadingsReady()
+{
+	if (isResultFresh)
+	{
+		isResultFresh = false;
+		return true;
+	}
+	return false;
 }
 
 void ElectronicLoad::begin()
@@ -142,17 +178,23 @@ boolean ElectronicLoad::isChksumOk(uint8_t* data)
 
 int ElectronicLoad::setI(float theI)
 {
+    queueByte(1);//set current
+    queueFloat(theI);
+    sendData(spiDataOut, spiOutIndex);
 	return 0;
 }
 
 int ElectronicLoad::setUpdatePeriod(float thePeriod)
 {
+	queueByte(2);//set period
+    queueFloat(thePeriod);
+    sendData(spiDataOut, spiOutIndex);
 	return 0;
 }
 
 int ElectronicLoad::getI(float * target)
 {
-	*target = analogRead(A0);
+	*target = I;
 	//*target = random(100);
 	return 0;
 }
@@ -162,16 +204,9 @@ int ElectronicLoad::getU(float * target)
 	static float returnVal;
 
 
-	int state = getState();
-	if (state == 0)//we got a fresh new result, that is, not one that we got previously
-	{
-		recordLastQueryTimestamp();
-		returnVal = random(24);
-	}
+	*target = U;
 
-	*target = returnVal;
-
-	return state;
+	return 0;
 }
 
 int ElectronicLoad::getState()

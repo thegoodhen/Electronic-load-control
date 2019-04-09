@@ -47,9 +47,12 @@ void FastTest::handle()
 	}
 	if (state == STATE_RUNNING)
 	{
+		static int it;
 		if (phase == PHASE_PREPARATION)
 		{
 			Serial.println("entering the loading phase...");
+			Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
+			ch->clear();
 			//TODO: handle errors
 			int state=ElectronicLoad::connectBattery(this->batteryNo);
 			ElectronicLoad::setI(loadCurrent);
@@ -62,12 +65,12 @@ void FastTest::handle()
 			float currentI;
 			float currentU;
 			//TODO: handle errors
-			static int it;
-			if (ElectronicLoad::getU(&currentU) == 0)
+			if (ElectronicLoad::areNewReadingsReady())
 			{
-				ElectronicLoad::getI(&currentI);
-				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
-				float arr[] = {it++,currentI};
+
+				ElectronicLoad::getU(&currentU);
+				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");//TODO: optimize
+				double arr[] = {it++,currentU};
 				ch->addPoint(ALL_CLIENTS, arr,2);
 			}
 
@@ -81,6 +84,18 @@ void FastTest::handle()
 		}
 		if (phase == PHASE_RECOVERY)
 		{
+
+			float currentI;
+			float currentU;
+			//TODO: handle errors
+			if (ElectronicLoad::areNewReadingsReady())
+			{
+
+				ElectronicLoad::getU(&currentU);
+				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
+				double arr[] = {it++,currentU};
+				ch->addPoint(ALL_CLIENTS, arr,2);
+			}
 
 			if (millis() - startMillis > 30000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
@@ -133,7 +148,8 @@ void FastTest::generateGUI(Container * c)
 	TextInput* tiLoadCurrent = new TextInput("tiLoadCurrent", "Load current");
 	vb->add(tiLoadCurrent);
 
-	Chart* ch = new Chart("chLastTestData", "Last test results");
+	Chart* ch = new Chart("chLastTestData", "Last test results",false);//TODO: change date to true
+	ch->setPersistency(true);
 	vb->add(ch);
 
 	

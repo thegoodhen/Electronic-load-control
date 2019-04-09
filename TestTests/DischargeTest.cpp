@@ -128,7 +128,7 @@ void DischargeTest::generateGUI(Container * c)
 	vb->add(lastResultsText);
 
 
-	Chart* ch = new Chart(getId()+"chLast", "Last test results");
+	Chart* ch = new Chart(getId()+"chLast", "Last test results",true);
 	vb->add(ch);
 
 	
