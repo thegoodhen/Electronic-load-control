@@ -1,6 +1,6 @@
 #include "FastTest.h"
 #include <functional>
- using namespace std::placeholders; 
+using namespace std::placeholders;
 
 FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
@@ -19,7 +19,7 @@ FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int 
 	this->state = STATE_SCHEDULED;
 
 
-	tmElements_t periodElems = { 0,periodMinute,periodHour,1, periodDay+1, 1, 0};
+	tmElements_t periodElems = { 0,periodMinute,periodHour,1, periodDay + 1, 1, 0 };
 	this->period = makeTime(periodElems);
 
 
@@ -29,6 +29,20 @@ FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int 
 void FastTest::start(boolean scheduled, float loadCurrent)
 {
 	beginTest(scheduled);
+}
+
+void FastTest::updateChart()
+{
+	if (ElectronicLoad::areNewReadingsReady())
+	{
+
+		float currentU;
+		ElectronicLoad::getU(&currentU);
+		Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");//TODO: optimize
+		double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
+		double arr[] = {currTime,currentU};
+		ch->addPoint(ALL_CLIENTS, arr,2);
+	}
 }
 
 void FastTest::handle()
@@ -62,17 +76,7 @@ void FastTest::handle()
 		}
 		if (phase == PHASE_LOADING)
 		{
-			float currentI;
-			float currentU;
-			//TODO: handle errors
-			if (ElectronicLoad::areNewReadingsReady())
-			{
-
-				ElectronicLoad::getU(&currentU);
-				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");//TODO: optimize
-				double arr[] = {it++,currentU};
-				ch->addPoint(ALL_CLIENTS, arr,2);
-			}
+			updateChart();
 
 			if (millis() - startMillis > 15000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
@@ -88,14 +92,8 @@ void FastTest::handle()
 			float currentI;
 			float currentU;
 			//TODO: handle errors
-			if (ElectronicLoad::areNewReadingsReady())
-			{
-
-				ElectronicLoad::getU(&currentU);
-				Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
-				double arr[] = {it++,currentU};
-				ch->addPoint(ALL_CLIENTS, arr,2);
-			}
+			updateChart();
+			
 
 			if (millis() - startMillis > 30000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
@@ -148,7 +146,7 @@ void FastTest::generateGUI(Container * c)
 	TextInput* tiLoadCurrent = new TextInput("tiLoadCurrent", "Load current");
 	vb->add(tiLoadCurrent);
 
-	Chart* ch = new Chart("chLastTestData", "Last test results",false);//TODO: change date to true
+	Chart* ch = new Chart("chLastTestData", "Last test results",true);
 	ch->setPersistency(true);
 	vb->add(ch);
 

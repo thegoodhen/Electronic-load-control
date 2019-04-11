@@ -49,7 +49,7 @@ void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
 //HovnoTest* HOVNOUS;
 FastTest* ft;
-//VoltageTest* vt;
+VoltageTest* vt;
 Communicator* comm;
 
 void setup()
@@ -83,7 +83,7 @@ void setup()
 
   //comm->begin();
   ft = new FastTest(comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  //vt = new VoltageTest(comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vt = new VoltageTest(comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   /*
   comm->login();
   comm->sendHeader("slepice");
