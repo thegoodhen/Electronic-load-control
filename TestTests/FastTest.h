@@ -4,8 +4,9 @@
 #include "parserUtils.h"
 
 #define PHASE_PREPARATION 0
-#define PHASE_LOADING 1
-#define PHASE_RECOVERY 2
+#define PHASE_NOLOAD 1
+#define PHASE_LOADING 2
+#define PHASE_RECOVERY 3
 
 
 class FastTest:public BatteryTest
@@ -28,4 +29,9 @@ private:
 	int reportResults() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
+	double voltageAtStart;
+	double voltageWhenLoaded;
+	double currentWhenLoaded;
+	double voltageAtEnd;
+	double internalResistance;
 };

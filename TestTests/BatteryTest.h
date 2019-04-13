@@ -71,6 +71,7 @@ protected:
 	void loadSettingsFromSpiffs();
 
 	void parseLoadedSettings();
+
 	
 	float updatePeriod = 0.25;
 
@@ -85,6 +86,11 @@ protected:
 
 	char prefix[50];
 	
+	double lastMeasuredU;
+	double lastMeasuredI;
+	String dateToString(time_t _theDate);
+	String getGenericLastTestInfo();
+
 	//String schedulingGUIPrefix;// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,
 	//char* slepice="";// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,
 	

@@ -38,12 +38,14 @@ void FastTest::updateChart()
 
 		float currentU;
 		ElectronicLoad::getU(&currentU);
+		lastMeasuredU = currentU;
 		Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");//TODO: optimize
 		double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
 		double arr[] = {currTime,currentU};
 		ch->addPoint(ALL_CLIENTS, arr,2);
 	}
 }
+
 
 void FastTest::handle()
 {
@@ -69,17 +71,28 @@ void FastTest::handle()
 			ch->clear();
 			//TODO: handle errors
 			int state=ElectronicLoad::connectBattery(this->batteryNo);
-			ElectronicLoad::setI(loadCurrent);
 			ElectronicLoad::setUpdatePeriod(0.25);
-			phase = PHASE_LOADING;
+			phase = PHASE_NOLOAD;
 			return;
+		}
+		if (phase == PHASE_NOLOAD)
+		{
+			updateChart();
+			if (millis() - startMillis > 5000)
+			{
+				voltageAtStart = this->lastMeasuredU;
+				phase = PHASE_LOADING;
+				ElectronicLoad::setI(loadCurrent);
+			}
 		}
 		if (phase == PHASE_LOADING)
 		{
 			updateChart();
 
-			if (millis() - startMillis > 15000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
+			if (millis() - startMillis > 20000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
+				this->voltageWhenLoaded= this->lastMeasuredU;
+				this->currentWhenLoaded = this->voltageWhenLoaded / 2;//TODO: actually measure the current...
 				Serial.println("entering the recovery phase...");
 				int state=ElectronicLoad::connectBattery(0);
 				phase = PHASE_RECOVERY;
@@ -95,9 +108,12 @@ void FastTest::handle()
 			updateChart();
 			
 
-			if (millis() - startMillis > 30000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
+			if (millis() - startMillis > 35000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
 				//end of the test
+				this->voltageAtEnd = this->lastMeasuredU;
+				double loadingResistance = 2;//TODO: calculate from the current and stuff...
+				this->internalResistance = ((this->voltageAtStart*loadingResistance)/voltageWhenLoaded)-loadingResistance;
 				endTest();
 			}
 		}
@@ -114,7 +130,7 @@ int FastTest::reportResults()
 		
 		comm->login();
 		comm->sendHeader("TEST RESULTS");//TODO: make sure that this changes when we failed
-		comm->printText("vysledek je pipka");
+		comm->printText(this->getTextResults());
 		comm->exit();
 		
 		//Serial.println(getTextResults());
@@ -164,7 +180,10 @@ void FastTest::generateGUI(Container * c)
 
 String FastTest::getTextResults()
 {
-	return "Vysledek je... SLEPICE! :3";
+
+	char specificResults[200];
+	sprintf(specificResults, "Open-circuit voltage: \t<b>%.4fV</b><br>Voltage under load: \t<b>%.4fV</b><br>Internal resistance: \t<b>%.4f ohm</b>", this->voltageAtStart, this->voltageWhenLoaded, this->internalResistance);
+	return this->getGenericLastTestInfo() + "\n"+specificResults;
 }
 
 String FastTest::getId()

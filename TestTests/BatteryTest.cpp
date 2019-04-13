@@ -52,6 +52,7 @@ void BatteryTest::endTest()
 	ElectronicLoad::connectBattery(0);
 	ElectronicLoad::setI(0);
 	ElectronicLoad::setUpdatePeriod(0);
+	this->lastRunDuration = now() - this->lastRunStart;
 	
 	if ((emailReport == REPORT_MAIL_ONFAIL && testFailed) || emailReport == REPORT_MAIL_ONFINISHED)
 	{
@@ -239,5 +240,22 @@ void BatteryTest::parseLoadedSettings()
 		this->setSchedulingPeriod(outArr[0], outArr[1], outArr[2]);
 	}
 	this->emailReport = config.mailSettings;
+}
+
+String BatteryTest::dateToString(time_t _theDate)
+{
+	char returnString[40];
+	sprintf(returnString, "%d.%d. %d %d:%d:%d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
+	Serial.println("returnString");
+	Serial.println(returnString);
+	return (String)returnString;
+	
+}
+
+String BatteryTest::getGenericLastTestInfo()
+{
+	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>"
+		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>" +
+		"status: " + ((this->lastRunPassed  )?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>");
 }
 
