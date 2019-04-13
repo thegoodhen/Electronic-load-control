@@ -9,9 +9,10 @@
 #include "Container.h"
 #include "Arduino.h"
 
-#define REPORT_MAIL_ONFINISHED 0//send an email report whenever the test finishes
+#define REPORT_MAIL_NEVER 0//do not send an email
 #define REPORT_MAIL_ONFAIL 1//send an email only if the battery fails the test 
-#define REPORT_MAIL_ONSTARTANDFINISH 2//also send the email when the test starts
+#define REPORT_MAIL_ONFINISHED 2//send an email report whenever the test finishes
+#define REPORT_MAIL_ONSTARTANDFINISH 3//also send the email when the test starts
 
 
 #define REPORT_SMS_ONFINISHED 0//send an SMS report whenever the test finishes
@@ -68,6 +69,8 @@ protected:
 	void saveSchSettingsCallback(int user);
 	void saveSettingsToSpiffs();
 	void loadSettingsFromSpiffs();
+
+	void parseLoadedSettings();
 	
 	float updatePeriod = 0.25;
 

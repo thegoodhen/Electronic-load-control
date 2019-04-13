@@ -93,10 +93,11 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 
 	
 	ListBox* lbMailSettings = new ListBox(_prefix+"lbMail", "email settings");
+	//CAUTION: the items are in a specific order; reodering the following lines will result in a fatal malfunction
 	lbMailSettings->addItem(new ListItem("Do not send an email"));
-	lbMailSettings->addItem(new ListItem("Notify about start and finish"));
-	lbMailSettings->addItem(new ListItem("Notify when finished"));
 	lbMailSettings->addItem(new ListItem("Only notify on fail"));
+	lbMailSettings->addItem(new ListItem("Notify when finished"));
+	lbMailSettings->addItem(new ListItem("Notify about start and finish"));
 	c->add(lbMailSettings);
 
 	
@@ -172,6 +173,7 @@ void BatteryTest::saveSettingsToSpiffs()
 	root["runPeriod"] = config.runPeriod;
 	root["storeResults"] = config.storeResults;
 	root["mailSettings"] = config.mailSettings;
+	parseLoadedSettings();
 	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
 }
 
@@ -206,6 +208,7 @@ void BatteryTest::loadSettingsFromSpiffs()
 
 	config.storeResults = root["storeResults"];
 	config.mailSettings= root["mailSettings"];
+	parseLoadedSettings();
 
 
 
@@ -218,5 +221,23 @@ void BatteryTest::loadSettingsFromSpiffs()
 	gui->find((String)prefix + "lbMail")->setDefaultIntValue(config.mailSettings);
 	//gui->find((String)prefix+"cbir")
 	//gui->find((String)prefix+"lbMail")->setDefaultText(config.mailSettings);
+}
+
+void BatteryTest::parseLoadedSettings()
+{
+
+	long outArr[5];
+	int n = parserUtils::retrieveNLongs(config.firstRun, 5, outArr);
+	if (n == 5)
+	{
+		this->setFirstScheduledStartTime(outArr[0], outArr[1], outArr[2], outArr[3], outArr[4]);
+	}
+
+	n = parserUtils::retrieveNLongs(config.runPeriod, 5, outArr);
+	if (n == 3)
+	{
+		this->setSchedulingPeriod(outArr[0], outArr[1], outArr[2]);
+	}
+	this->emailReport = config.mailSettings;
 }
 

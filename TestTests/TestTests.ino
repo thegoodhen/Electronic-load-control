@@ -15,7 +15,7 @@
 #include <WiFiUdp.h>
 //#include "HovnoTest.h"
 #include "FastTest.h"
-//#include "VoltageTest.h"
+#include "VoltageTest.h"
 #include <WiFiClient.h>
 #include <TGH_GUI.h>
 
@@ -122,7 +122,7 @@ void initGUI()
 
 
 	ft->generateGUI(tab2);
-	//vt->generateGUI(tab2);
+	vt->generateGUI(tab2);
 
 	
 
@@ -169,7 +169,7 @@ void loop()
   }
   
   ft->handle();
-  //vt->handle();
+  vt->handle();
 
 	gui.loop();//you have to call this function in loop() for this library to work!
 }

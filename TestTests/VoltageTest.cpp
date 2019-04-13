@@ -54,7 +54,9 @@ void VoltageTest::handle()
 		if (phase == PHASE_PREPARATION)
 		{
 			//TODO: handle errors
-			int state=ElectronicLoad::connectBattery(this->batteryNo);
+			//int state=ElectronicLoad::connectBattery(this->batteryNo);
+			currentMeasurmentNumber = 0;
+			voltageSum = 0;
 			ElectronicLoad::setUpdatePeriod(updatePeriod);
 			Serial.println("prep phase");
 			phase = PHASE_MEASURING;
@@ -63,6 +65,10 @@ void VoltageTest::handle()
 		if (phase == PHASE_MEASURING)
 		{
 			float currentU;//current as in immediate, might wanna relabel that...
+			if (!ElectronicLoad::areNewReadingsReady())
+			{
+				return;
+			}
 
 			if (ElectronicLoad::getU(&currentU) == 0)
 			{
@@ -76,6 +82,11 @@ void VoltageTest::handle()
 				{
 					testFailed = true;
 				}
+
+				double arr[] = { now(),averageVoltage };
+
+				Chart* ch = (Chart*)cont->getGUI()->find(this->getId()+"chLast");//TODO: optimize
+				ch->addPoint(ALL_CLIENTS, arr,2);
 				endTest();
 			}
 		}
@@ -120,6 +131,7 @@ void VoltageTest::generateGUI(Container * c)
 
 
 	Chart* ch = new Chart(getId()+"chLast", "Last test results",true);
+	ch->setPersistency(true);
 	vb->add(ch);
 
 	
