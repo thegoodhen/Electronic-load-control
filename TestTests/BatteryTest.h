@@ -60,6 +60,8 @@ protected:
 	void setSchedulingPeriod(int days, int hours, int minutes);
 	void beginTest(boolean scheduled);
 
+	void fastForwardScheduling();
+
 	void endTest();
 
 
@@ -67,8 +69,8 @@ protected:
 
 
 	void saveSchSettingsCallback(int user);
-	void saveSettingsToSpiffs();
-	void loadSettingsFromSpiffs();
+	void saveSchSettingsToSpiffs();
+	void loadSchSettingsFromSpiffs();
 
 	void parseLoadedSettings();
 

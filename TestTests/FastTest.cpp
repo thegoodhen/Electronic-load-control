@@ -24,6 +24,7 @@ FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int 
 
 
 	this->canRunAutomatically = scheduled;
+	this->fastForwardScheduling();
 }
 
 void FastTest::start(boolean scheduled, float loadCurrent)
@@ -111,10 +112,19 @@ void FastTest::handle()
 			if (millis() - startMillis > 35000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
 				//end of the test
+				endTest();
 				this->voltageAtEnd = this->lastMeasuredU;
 				double loadingResistance = 2;//TODO: calculate from the current and stuff...
 				this->internalResistance = ((this->voltageAtStart*loadingResistance)/voltageWhenLoaded)-loadingResistance;
-				endTest();
+
+				double arr[] = { now(),voltageAtStart,voltageWhenLoaded,voltageAtEnd,internalResistance};
+
+				Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");
+				ch->addPoint(ALL_CLIENTS, arr,5);
+				Text* t= (Text*)cont->getGUI()->find(this->getId() + "lastResults");
+				t->setDefaultText(this->getTextResults());
+				t->setText(ALL_CLIENTS, getTextResults());
+
 			}
 		}
 
@@ -156,26 +166,86 @@ void FastTest::generateGUI(Container * c)
 	vb->add(t);
 
 
-	Text* lastResultsText = new Text("lastResults", R"(Last results are something something)");
+	Text* lastResultsText = new Text(getId()+"lastResults", R"(Last results are something something)");
 	vb->add(lastResultsText);
 
-	TextInput* tiLoadCurrent = new TextInput("tiLoadCurrent", "Load current");
-	vb->add(tiLoadCurrent);
+	TextInput* tiMaxRiBeforeFail= new TextInput(getId()+"tiMaxRiBeforeFail", "Max Ri before fail");
+	vb->add(tiMaxRiBeforeFail);
+
+	auto fStoreSettings = std::bind(&FastTest::saveSettingsCallback, this, _1);
+	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
+	vb->add(btnStoreSettings);
 
 	Chart* ch = new Chart("chLastTestData", "Last test results",true);
 	ch->setPersistency(true);
 	vb->add(ch);
+
+	Chart* chHist = new Chart(getId()+"chLast", "Historical results",true,"time","OC voltage","Voltage under load","Recovery vtg","Internal resistance");
+	chHist->setPersistency(true);
+	vb->add(chHist);
 
 	
 	auto f1 = std::bind(&FastTest::startTestCallback, this, _1);
 	Button* btnStartFastTest = new Button("btnStartFastTest", "Start test now" , f1);
 	vb->add(btnStartFastTest);
 	generateSchedulingGUI(vb, this->getId());
+	loadSettingsFromSpiffs();
 
 
 	
 
 }
+
+void FastTest::saveSettingsToSpiffs()
+{
+	//Serial.println("ten prefix je:");
+		//Serial.println(prefix);
+
+	char fname[50];
+	sprintf(fname, "%s.cfg", getId().c_str());
+
+	//char* fname = (char*)((String)prefix+".cfg").c_str();
+	Serial.println(fname);
+
+	StaticJsonBuffer<50> jsonBuffer;
+
+	// Parse the root object
+	JsonObject &root = jsonBuffer.createObject();
+
+	// Set the values
+	root["maxRi"] = maxRiBeforeFail;
+	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+}
+
+void FastTest::loadSettingsFromSpiffs()
+{
+
+	Serial.println("nacitam nastaveni...");
+	StaticJsonBuffer<1000> jb;
+	StaticJsonBuffer<1000> *jbPtr = &jb;
+
+
+
+		char fname[50];
+		sprintf(fname, "%s.cfg", prefix);
+	Serial.println(fname);
+
+	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	if (root["success"] == false)
+	{
+		Serial.println("failnulo to nacitani konkretniho nastaveni toho testu...");
+	return;
+	}
+	Serial.println("nacetlo se konkretni nastaveni...");
+
+	maxRiBeforeFail = root["maxRi"];
+
+
+
+	GUI* gui = this->cont->getGUI();
+	gui->find(getId()+"tiMaxRiBeforeFail")->setDefaultText((String)maxRiBeforeFail);
+}
+
 
 
 String FastTest::getTextResults()
@@ -195,42 +265,22 @@ void FastTest::startTestCallback(int user)
 {
 	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
-	String s = gui->find("tiLoadCurrent")->retrieveText(user);
-	USE_SERIAL.println("s");
-	USE_SERIAL.println(s);
-	float loadCurrent;
-	parserUtils::retrieveFloat(s.c_str(), &loadCurrent);
+	//String s = gui->find("tiLoadCurrent")->retrieveText(user);
+	//USE_SERIAL.println("s");
+	//USE_SERIAL.println(s);
+	//float loadCurrent;
+	//parserUtils::retrieveFloat(s.c_str(), &loadCurrent);
 
 	long outArr[10];
 	int n = parserUtils::retrieveNLongs("10:20:30:40:15", 10, outArr);
-	start(false, loadCurrent);
+	start(false, 10);
 
 }
 
 void FastTest::saveSettingsCallback(int user)
 {
-	USE_SERIAL.println("Saving settings");
-	
 	GUI* gui = cont->getGUI();
-	//String s = gui->find("tiLoadCurrent")->retrieveText(user);
-
-	String s = gui->find("tiFirstRun")->retrieveText(user);
-
-	long outArr[5];
-	int n = parserUtils::retrieveNLongs(s.c_str(), 5, outArr);
-	if (n == 5)
-	{
-		this->setFirstScheduledStartTime(outArr[0], outArr[1], outArr[2], outArr[3], outArr[4]);
-	}
-
-
-	s = gui->find("tiPeriod")->retrieveText(user);
-
-
-	n = parserUtils::retrieveNLongs(s.c_str(), 5, outArr);
-	if (n == 3)
-	{
-		this->setSchedulingPeriod(outArr[0], outArr[1], outArr[2]);
-	}
-	
+	String s = gui->find(getId()+"tiMaxRiBeforeFail")->retrieveText(user);
+	parserUtils::retrieveFloat(s.c_str(), &maxRiBeforeFail);
+	saveSettingsToSpiffs();
 }

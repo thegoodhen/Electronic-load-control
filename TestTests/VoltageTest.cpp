@@ -18,6 +18,7 @@
 
 
 	this->canRunAutomatically = scheduled;
+	this->fastForwardScheduling();
 }
 
 void VoltageTest::start(boolean scheduled)
@@ -88,6 +89,10 @@ void VoltageTest::handle()
 				Chart* ch = (Chart*)cont->getGUI()->find(this->getId()+"chLast");//TODO: optimize
 				ch->addPoint(ALL_CLIENTS, arr,2);
 				endTest();
+
+				Text* t= (Text*)cont->getGUI()->find(this->getId() + "lastResults");
+				t->setDefaultText(this->getTextResults());
+				t->setText(ALL_CLIENTS, getTextResults());
 			}
 		}
 		
@@ -125,6 +130,10 @@ void VoltageTest::generateGUI(Container * c)
 	TextInput* ti1 = new TextInput(getId() + (String)"failVoltage", "Minimum measured voltage before test fails");
 	vb->add(ti1);
 
+	auto fStoreSettings = std::bind(&VoltageTest::saveSettingsCallback, this, _1);
+	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
+	vb->add(btnStoreSettings);
+
 
 	Text* lastResultsText = new Text(getId()+"lastResults", R"(Last results are something something)");
 	vb->add(lastResultsText);
@@ -142,10 +151,71 @@ void VoltageTest::generateGUI(Container * c)
 	vb->add(btnStartTest);
 	generateSchedulingGUI(vb, this->getId());
 
+	loadSettingsFromSpiffs();
 
 
 
 }
+
+
+void VoltageTest::saveSettingsToSpiffs()
+{
+	//Serial.println("ten prefix je:");
+		//Serial.println(prefix);
+
+	char fname[50];
+	sprintf(fname, "%s.cfg", getId().c_str());
+
+	//char* fname = (char*)((String)prefix+".cfg").c_str();
+	Serial.println(fname);
+
+	StaticJsonBuffer<50> jsonBuffer;
+
+	// Parse the root object
+	JsonObject &root = jsonBuffer.createObject();
+
+	// Set the values
+	root["minU"] = failVoltageThreshold;
+	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+}
+
+void VoltageTest::saveSettingsCallback(int user)
+{
+	GUI* gui = cont->getGUI();
+	String s = gui->find(getId()+"failVoltage")->retrieveText(user);
+	parserUtils::retrieveFloat(s.c_str(), &failVoltageThreshold);
+	saveSettingsToSpiffs();
+}
+
+void VoltageTest::loadSettingsFromSpiffs()
+{
+
+	Serial.println("nacitam nastaveni...");
+	StaticJsonBuffer<1000> jb;
+	StaticJsonBuffer<1000> *jbPtr = &jb;
+
+
+
+		char fname[50];
+		sprintf(fname, "%s.cfg", prefix);
+	Serial.println(fname);
+
+	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	if (root["success"] == false)
+	{
+		Serial.println("failnulo to nacitani konkretniho nastaveni toho testu...");
+	return;
+	}
+	Serial.println("nacetlo se konkretni nastaveni...");
+
+	failVoltageThreshold= root["minU"];
+
+
+
+	GUI* gui = this->cont->getGUI();
+	gui->find(getId()+"failVoltage")->setDefaultText((String)failVoltageThreshold);
+}
+
 
 String VoltageTest::getId()
 {
@@ -166,30 +236,3 @@ void VoltageTest::startTestCallback(int user)
 
 }
 
-void VoltageTest::saveSettingsCallback(int user)
-{
-	USE_SERIAL.println("Saving settings");
-	/*
-	GUI* gui = cont->getGUI();
-	//String s = gui->find("tiLoadCurrent")->retrieveText(user);
-
-	String s = gui->find("tiFirstRun")->retrieveText(user);
-
-	long outArr[5];
-	int n = parserUtils::retrieveNLongs(s.c_str(), 5, outArr);
-	if (n == 5)
-	{
-		this->setFirstScheduledStartTime(outArr[0], outArr[1], outArr[2], outArr[3], outArr[4]);
-	}
-
-
-	s = gui->find("tiPeriod")->retrieveText(user);
-
-
-	n = parserUtils::retrieveNLongs(s.c_str(), 5, outArr);
-	if (n == 3)
-	{
-		this->setSchedulingPeriod(outArr[0], outArr[1], outArr[2]);
-	}
-	*/
-}

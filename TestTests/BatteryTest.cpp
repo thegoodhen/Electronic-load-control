@@ -39,12 +39,19 @@ void BatteryTest::beginTest(boolean scheduled)
 		Serial.println(this->scheduledStartTime+this->period);
 		Serial.println("the period");
 		Serial.println(period);
+		
+		fastForwardScheduling();
+
+	}
+}
+
+void BatteryTest::fastForwardScheduling()
+{
 
 		while (this->scheduledStartTime < now())//skip all the missed scheduled times
 		{
 			this->scheduledStartTime += this->period;//schedule the next run of this test
 		}
-	}
 }
 
 void BatteryTest::endTest()
@@ -78,11 +85,11 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	Heading* hSchedulingProps = new Heading(_prefix+"hSch", 2, "Scheduling settings");
 	c->add(hSchedulingProps);
 
-	TextInput* tiFirstRun = new TextInput(_prefix+"tifr", "the time and date of the first scheduled run");
+	TextInput* tiFirstRun = new TextInput(_prefix+"tifr", "the time and date of the first scheduled run (DD.MM.YYYY HH:MM)");
 	c->add(tiFirstRun);
 
 
-	TextInput* tiPeriod= new TextInput(_prefix+"tiP", "the period between two consecutive scheduled runs");
+	TextInput* tiPeriod= new TextInput(_prefix+"tiP", "the period between two consecutive scheduled runs (DD:HH:MM)");
 	c->add(tiPeriod);
 
 	Checkbox* cbIncludeResult= new Checkbox(_prefix+"cbir", "Store historical test results");
@@ -118,7 +125,7 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	
 	Button* btnRecallSettings= new Button(_prefix+"_recallSchSettings", "Recall stored settings", NULL);
 	c->add(btnRecallSettings);
-	loadSettingsFromSpiffs();
+	loadSchSettingsFromSpiffs();
 
 
 	//the following lines fix everything... how very bizzare indeed!
@@ -146,14 +153,14 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 
 		int mailSettings = gui->find((String)prefix + "lbMail")->retrieveIntValue(user);
 		config.mailSettings = mailSettings;
-		saveSettingsToSpiffs();
+		saveSchSettingsToSpiffs();
 		
 
 
 	}
 
 	
-void BatteryTest::saveSettingsToSpiffs()
+void BatteryTest::saveSchSettingsToSpiffs()
 {
 	Serial.println("ten prefix je:");
 		Serial.println(prefix);
@@ -178,7 +185,7 @@ void BatteryTest::saveSettingsToSpiffs()
 	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
 }
 
-void BatteryTest::loadSettingsFromSpiffs()
+void BatteryTest::loadSchSettingsFromSpiffs()
 {
 
 	Serial.println("nacitam nastaveni...");

@@ -17,10 +17,12 @@ public:
 	void start(boolean scheduled, float loadCurrent);
 	void updateChart();
 	void handle() override;
+	void loadSettingsFromSpiffs();
 	String getTextResults() override;
 	String getId() override;
 	//get the textual representation of the test results
 	void generateGUI(Container* c) override;
+	void saveSettingsToSpiffs();
 private:
 	Communicator* comm;
 	Container* cont;
@@ -34,4 +36,5 @@ private:
 	double currentWhenLoaded;
 	double voltageAtEnd;
 	double internalResistance;
+	float maxRiBeforeFail;
 };
