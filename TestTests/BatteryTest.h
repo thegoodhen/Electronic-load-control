@@ -9,6 +9,8 @@
 #include "Container.h"
 #include "Arduino.h"
 
+#include "TestScheduler.h"
+
 #define REPORT_MAIL_NEVER 0//do not send an email
 #define REPORT_MAIL_ONFAIL 1//send an email only if the battery fails the test 
 #define REPORT_MAIL_ONFINISHED 2//send an email report whenever the test finishes
@@ -29,10 +31,18 @@
 
 class BatteryTest
 {
+private:
 public:
 	char* slepice = "";
+	void setScheduler(TestScheduler * _sch);
+	time_t getScheduledStartTime();
+	void processRequestToStopTest(int userNo);
+	void beginTest(boolean scheduled);
+	virtual void handle();
+	void fastForwardScheduling();
 protected:
 
+	TestScheduler* scheduler=NULL;
 	Container* cont=NULL;
 	boolean canRunAutomatically;//whether the test is scheduled to be run automatically
 	time_t firstScheduledStartTime;//the first time the test is scheduled to; the time instants when the test should be run are defined by the first time and the period
@@ -51,16 +61,13 @@ protected:
 
 	virtual String getTextResults();//get the textual representation of the test results
 	//virtual void start(boolean scheduled);
-	virtual void handle();
 	virtual int reportResults();
 	virtual void generateGUI(Container* c);//fill a container with a GUI
 	virtual String getId()=0;
 
 	void setFirstScheduledStartTime(int day, int month, int year, int hour, int min);
 	void setSchedulingPeriod(int days, int hours, int minutes);
-	void beginTest(boolean scheduled);
 
-	void fastForwardScheduling();
 
 	void endTest();
 
@@ -92,6 +99,7 @@ protected:
 	double lastMeasuredI;
 	String dateToString(time_t _theDate);
 	String getGenericLastTestInfo();
+
 
 	//String schedulingGUIPrefix;// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,
 	//char* slepice="";// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,

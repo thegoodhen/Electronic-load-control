@@ -5,9 +5,11 @@
  * This sketch uses the ESP8266WiFi library
  */
 
- #include "SpiffsPersistentSettingsUtils.h"
+ #include "TestScheduler.h"
+#include "SpiffsPersistentSettingsUtils.h"
 #include "parserUtils.h"
 #include "Communicator.h"
+#include "TestScheduler.h"
 
 #include <base64.h>
 #include <TimeLib.h>
@@ -51,6 +53,7 @@ void sendNTPpacket(IPAddress &address);
 FastTest* ft;
 VoltageTest* vt;
 Communicator* comm;
+TestScheduler* ts;
 
 void setup()
 {
@@ -80,10 +83,11 @@ void setup()
   SpiffsPersistentSettingsUtils::begin();
 
   comm = new Communicator(wfc, "smtp.seznam.cz", "dsibrava@seznam.cz", "mr.nobody", "dsibrava@seznam.cz", 25, 0);
+  ts = new TestScheduler();
 
   //comm->begin();
-  ft = new FastTest(comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  vt = new VoltageTest(comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   /*
   comm->login();
   comm->sendHeader("slepice");
@@ -168,8 +172,9 @@ void loop()
     }
   }
   
-  ft->handle();
-  vt->handle();
+  ts->handle();
+  //ft->handle();
+  //vt->handle();
 
 	gui.loop();//you have to call this function in loop() for this library to work!
 }

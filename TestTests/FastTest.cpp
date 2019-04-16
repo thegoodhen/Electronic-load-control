@@ -2,8 +2,9 @@
 #include <functional>
 using namespace std::placeholders;
 
-FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+FastTest::FastTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
 	tmElements_t startDateElems = { 0,firstRunMinute,firstRunHour,1, firstRunDay,firstRunMonth,firstRunYear };
@@ -27,10 +28,6 @@ FastTest::FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int 
 	this->fastForwardScheduling();
 }
 
-void FastTest::start(boolean scheduled, float loadCurrent)
-{
-	beginTest(scheduled);
-}
 
 void FastTest::updateChart()
 {
@@ -51,6 +48,7 @@ void FastTest::updateChart()
 void FastTest::handle()
 {
 	
+	/*
 	if (state == STATE_SCHEDULED)
 	{
 		if (now() > this->scheduledStartTime)
@@ -59,9 +57,10 @@ void FastTest::handle()
 			Serial.println(now());
 			Serial.println("then");
 			Serial.println(this->scheduledStartTime);
-			start(true, this->scheduledLoadCurrent);
+			beginTest(true);
 		}
 	}
+	*/
 	if (state == STATE_RUNNING)
 	{
 		static int it;
@@ -116,6 +115,13 @@ void FastTest::handle()
 				this->voltageAtEnd = this->lastMeasuredU;
 				double loadingResistance = 2;//TODO: calculate from the current and stuff...
 				this->internalResistance = ((this->voltageAtStart*loadingResistance)/voltageWhenLoaded)-loadingResistance;
+
+				this->testFailed = false;
+				if (internalResistance > this->maxRiBeforeFail)
+				{
+					this->testFailed = true;
+				}
+
 
 				double arr[] = { now(),voltageAtStart,voltageWhenLoaded,voltageAtEnd,internalResistance};
 
@@ -273,7 +279,7 @@ void FastTest::startTestCallback(int user)
 
 	long outArr[10];
 	int n = parserUtils::retrieveNLongs("10:20:30:40:15", 10, outArr);
-	start(false, 10);
+	beginTest(false);
 
 }
 

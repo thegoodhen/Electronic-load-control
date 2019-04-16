@@ -121,6 +121,7 @@
     <ClInclude Include="HovnoTest.h" />
     <ClInclude Include="parserUtils.h" />
     <ClInclude Include="SpiffsPersistentSettingsUtils.h" />
+    <ClInclude Include="TestScheduler.h" />
     <ClInclude Include="VoltageTest.h" />
     <ClInclude Include="__vm\.TestTests.vsarduino.h" />
   </ItemGroup>
@@ -134,6 +135,7 @@
     <ClCompile Include="HovnoTest.cpp" />
     <ClCompile Include="parserUtils.cpp" />
     <ClCompile Include="SpiffsPersistentSettingsUtils.cpp" />
+    <ClCompile Include="TestScheduler.cpp" />
     <ClCompile Include="VoltageTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

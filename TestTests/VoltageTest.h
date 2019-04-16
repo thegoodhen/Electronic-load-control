@@ -11,8 +11,8 @@ class VoltageTest:public BatteryTest
 {
 	
 public:
-	 VoltageTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
-	void start(boolean scheduled);
+	//VoltageTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
+	VoltageTest(TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void handle() override;
 	String getTextResults() override;//get the textual representation of the test results
 	void generateGUI(Container* c) override;

@@ -1,5 +1,7 @@
 
 #include "BatteryTest.h"
+#include "TestScheduler.h"
+
 #include <functional>
 
 using namespace std::placeholders;	
@@ -23,6 +25,7 @@ void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
 void BatteryTest::beginTest(boolean scheduled)
 {
 
+	this->scheduler->notifyAboutTestStart(this);
 	this->wasThisRunScheduled = scheduled;
 	//this->loadCurrent = loadCurrent;
 	this->lastRunStart = now();
@@ -56,6 +59,7 @@ void BatteryTest::fastForwardScheduling()
 
 void BatteryTest::endTest()
 {
+	this->scheduler->notifyAboutTestEnd();
 	ElectronicLoad::connectBattery(0);
 	ElectronicLoad::setI(0);
 	ElectronicLoad::setUpdatePeriod(0);
@@ -263,6 +267,37 @@ String BatteryTest::getGenericLastTestInfo()
 {
 	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>"
 		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>" +
-		"status: " + ((this->lastRunPassed  )?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>");
+		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>");
+}
+void BatteryTest::setScheduler(TestScheduler* _sch)
+{
+	this->scheduler = _sch;
+}
+
+time_t BatteryTest::getScheduledStartTime()
+{
+	return this->scheduledStartTime;
+}
+
+void BatteryTest::processRequestToStopTest(int userNo)
+{
+	static unsigned long lastMillis;
+	static boolean wasRequestedAlready=false;
+	if (wasRequestedAlready && (millis()-lastMillis<5000))
+	{
+		wasRequestedAlready = false;
+		GUI* gui = cont->getGUI();
+		gui->showInfo(userNo, "Test aborted.");
+		endTest();
+	}
+	else
+	{
+		wasRequestedAlready = true;
+		lastMillis = millis();
+		GUI* gui = cont->getGUI();
+		gui->showInfo(userNo, "Click again to abort test.");
+
+	}
+	
 }
 

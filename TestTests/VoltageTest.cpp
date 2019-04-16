@@ -2,8 +2,9 @@
 #include <functional>
  using namespace std::placeholders; 
 
- VoltageTest::VoltageTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+ VoltageTest::VoltageTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
 	tmElements_t startDateElems = { 0,firstRunMinute,firstRunHour,1, firstRunDay,firstRunMonth,firstRunYear };
@@ -21,35 +22,19 @@
 	this->fastForwardScheduling();
 }
 
-void VoltageTest::start(boolean scheduled)
-{
-	this->wasThisRunScheduled = scheduled;
-	//this->loadCurrent = loadCurrent;
-	this->lastRunStart = now();
-	this->startMillis = millis();
-	this->phase = 0;
-	this->state = STATE_RUNNING;
-
-	if (scheduled)
-	{
-
-		while (this->scheduledStartTime < now())//skip all the missed scheduled times
-		{
-			this->scheduledStartTime += this->period;//schedule the next run of this test
-		}
-	}
-}
-
 void VoltageTest::handle()
 {
 	static int currentMeasurmentNumber = 0;
+	/*
 	if (state == STATE_SCHEDULED)
 	{
 		if (now() > this->scheduledStartTime)
 		{
-			start(true);
+			beginTest(true);
 		}
 	}
+	*/
+
 	if (state == STATE_RUNNING)
 	{
 		if (phase == PHASE_PREPARATION)
@@ -79,6 +64,8 @@ void VoltageTest::handle()
 			if (currentMeasurmentNumber >= MEASURMENTS_COUNT)
 			{
 				averageVoltage = voltageSum / currentMeasurmentNumber;
+
+				testFailed = false;
 				if (averageVoltage < failVoltageThreshold)
 				{
 					testFailed = true;
@@ -232,7 +219,16 @@ void VoltageTest::startTestCallback(int user)
 	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 
-	start(false);
+	if (this->state == STATE_RUNNING)
+	{
+		Serial.println("stopping");
+		processRequestToStopTest(user);
+	}
+	else
+	{
+		Serial.println("beginning");
+		beginTest(false);
+	}
 
 }
 
