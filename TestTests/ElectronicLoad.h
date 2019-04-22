@@ -47,5 +47,6 @@ public:
 	static boolean isChksumOk(uint8_t * data);
 	static int getState();//the current state of the load
     static void recordLastQueryTimestamp();
+	static void heartBeat();
 };
 

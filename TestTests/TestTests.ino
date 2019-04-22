@@ -57,6 +57,7 @@ TestScheduler* ts;
 
 void setup()
 {
+  ElectronicLoad::begin();
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(250);
@@ -104,7 +105,6 @@ void setup()
   //Serial.println("Ted to ma vypsat tu trojku...");
   //Serial.println(s);
 
-  ElectronicLoad::begin();
   initGUI();
 }
 
@@ -177,6 +177,7 @@ void loop()
   //vt->handle();
 
 	gui.loop();//you have to call this function in loop() for this library to work!
+	ElectronicLoad::heartBeat();
 }
 
 void digitalClockDisplay()

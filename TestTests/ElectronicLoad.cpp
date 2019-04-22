@@ -136,6 +136,9 @@ boolean ElectronicLoad::areNewReadingsReady()
 
 void ElectronicLoad::begin()
 {
+  pinMode(D0, OUTPUT);
+  digitalWrite(D0, LOW);
+
   SPISlave.onData([](uint8_t * data, size_t len) {
 	  onData(data, len);	
   });
@@ -149,7 +152,6 @@ void ElectronicLoad::begin()
 
   // Setup SPI Slave registers and pins
   SPISlave.begin();
-  pinMode(D0, OUTPUT);
 }
 
 int ElectronicLoad::connectBattery(int batteryNo)
@@ -222,4 +224,17 @@ int ElectronicLoad::getState()
 void ElectronicLoad::recordLastQueryTimestamp()
 {
 	lastQueryTimestamp = millis();
+}
+
+void ElectronicLoad::heartBeat()
+{
+	static unsigned long lastMillis;	
+	static boolean currentHBState = false;
+	if (millis() - lastMillis > 1000)
+	{
+		currentHBState = !currentHBState;
+		pinMode(D1, OUTPUT);
+		digitalWrite(D1, currentHBState);
+		lastMillis = millis();
+	}
 }
