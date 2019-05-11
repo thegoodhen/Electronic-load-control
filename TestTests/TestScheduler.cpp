@@ -8,6 +8,11 @@ void TestScheduler::addTest(BatteryTest * bt)
 	bt->setScheduler(this);
 }
 
+BatteryTest* TestScheduler::getCurrentTest()
+{
+	return this->currentTest;
+}
+
 void TestScheduler::handle()
 {
 	if (this->currentTest == NULL)
@@ -38,7 +43,28 @@ void TestScheduler::handle()
 void TestScheduler::notifyAboutTestEnd()
 {
 	Serial.println("SCHEDULER KNOWS: TEST END!");
+	if (this->currentTest->getBatteryNo() == 1)
+	{
+		this->lastTestBat1 = currentTest;
+	}
+	else
+	{
+		this->lastTestBat2 = currentTest;
+	}
 	this->currentTest = NULL;
+}
+
+BatteryTest* TestScheduler::getLastTest(int batteryNo)
+{
+	if (batteryNo == 1)
+	{
+		return lastTestBat1;
+	}
+	if (batteryNo == 2)
+	{
+		return lastTestBat2;
+	}
+	return NULL;
 }
 
 void TestScheduler::notifyAboutTestStart(BatteryTest* _bt)

@@ -6,6 +6,11 @@
 
 using namespace std::placeholders;	
 
+int BatteryTest::getBatteryNo()
+{
+	return batteryNo;
+}
+
 void BatteryTest::setFirstScheduledStartTime(int day, int month, int year, int hour, int min)
 {
 	
@@ -24,6 +29,15 @@ void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
 
 void BatteryTest::beginTest(boolean scheduled)
 {
+	if (this->scheduler->getCurrentTest() != NULL)//some test already running
+	{
+		if (!scheduled)
+		{
+			GUI* gui = this->cont->getGUI();
+			gui->showError(-1, "Test already running!");
+		}
+		return;
+	}
 
 	this->scheduler->notifyAboutTestStart(this);
 	this->wasThisRunScheduled = scheduled;

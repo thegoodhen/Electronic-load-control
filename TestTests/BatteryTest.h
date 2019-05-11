@@ -40,6 +40,8 @@ public:
 	void beginTest(boolean scheduled);
 	virtual void handle();
 	void fastForwardScheduling();
+	int getBatteryNo();
+	virtual String getTextResults();//get the textual representation of the test results
 protected:
 
 	TestScheduler* scheduler=NULL;
@@ -58,8 +60,7 @@ protected:
 	int emailReport = REPORT_MAIL_ONFINISHED;
 	bool wasThisRunScheduled;//whether the current run is a result of automatic scheduling (true) or was initiated manually by the user (false)
 	boolean testFailed=0;//whether the test succeeded (false) or not (true)
-
-	virtual String getTextResults();//get the textual representation of the test results
+	
 	//virtual void start(boolean scheduled);
 	virtual int reportResults();
 	virtual void generateGUI(Container* c);//fill a container with a GUI
