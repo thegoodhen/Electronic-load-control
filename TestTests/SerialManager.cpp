@@ -9,10 +9,11 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include "BatteryTest.h"
+#include "NTPManager.h"
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"} };
  TestScheduler* SerialManager::ts;
 
 
@@ -106,9 +107,11 @@ void SerialManager::disconnectWiFi(char** params, int argCount)
 
 void SerialManager::schedule(char** params, int argCount)
 {
+	Serial.println(argCount);
 	if (argCount != 5)
 	{
 		Serial.println("Usage: SCHEDULE|TESTTYPE|BATTERYNO|STARTDATE|PERIOD|MAILSETTINGS, that is SCHEDULE|TESTTYPE|BATTERYNO|DD.MM.YYYY HH:MM|DD:HH:MM|MAILSETTINGS");
+		return;
 	}
 
   int testType = getTestType(params[0]);
@@ -126,7 +129,10 @@ void SerialManager::schedule(char** params, int argCount)
 
   if (bt != NULL)
   {
-	  bt->schedule(params[0], params[1], 0);
+	  if (!bt->schedule(params[2], params[3], 0))
+	  {
+		  Serial.println("Invalid scheduling settings. Correct format for start date: DD.MM.YYYY HH:MM and for period DD:HH:MM.");
+	  }
   }
 }
 
@@ -159,6 +165,21 @@ void SerialManager::lastResult(char** params, int argCount)
   {
 	  Serial.println("No such test.");
   }
+}
+
+void SerialManager::timeSet(char** params, int argCount)
+{
+	if (argCount != 1)
+	{
+		Serial.println("Usage: SETTIME|DD:MM:YYYY HH:MM");
+		return;
+	}
+	time_t timeToSet = NTPManager::stringToDate(params[0]);
+	if (timeToSet != 0)
+	{
+		setTime(timeToSet);
+	}
+
 }
 
 int SerialManager :: getBatteryNo(char* input)
@@ -202,13 +223,13 @@ int SerialManager::getTestType(char* theName)
 
  void SerialManager::handleData()
  {
-	 char inputBuffer[100];
+	 char inputBuffer[400];
 	 static int index = 0;
 	 while (Serial.available()) {
 		 // get the new byte:
 		 char inChar = (char)Serial.read();
 		 // add it to the inputString:
-		 if (index >= 100)
+		 if (index >= 400)
 		 {
 			 index = 0;
 		 }
@@ -235,8 +256,8 @@ void SerialManager::loop()
 void SerialManager::parseCommand(char* str)
 {
   removeTrailingNewlines(str);
-  const int nargs = 5;
-  char* arguments[nargs];//max 5 arguments in total;
+  const int nargs = 10;
+  char* arguments[nargs];//max 10 arguments in total;
   for (int i = 0; i < nargs; i++)
   {
     arguments[i] = NULL;

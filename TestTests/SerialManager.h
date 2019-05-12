@@ -51,6 +51,7 @@ static void connectWiFi(char ** params, int argCount);
 static void disconnectWiFi(char ** params, int argCount);
 static void lastResult(char ** params, int argCount);
 static void schedule(char ** params, int argCount);
+static void timeSet(char ** params, int argCount);
 
 static int getBatteryNo(char * input);
 

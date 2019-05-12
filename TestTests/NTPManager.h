@@ -17,6 +17,9 @@ private:
 public:
 	static void begin();
 	static void generateGUI(Container* c);
+	static boolean isDateValid(String theDate);
+
+	static boolean isPeriodValid(String thePeriod);
 
 
 	struct ntpConfig {
@@ -24,6 +27,7 @@ public:
 		int gmtOffset;
 	};
 	static ntpConfig config;
+	static time_t stringToDate(String dateStr);
 
 protected:
 
@@ -52,11 +56,13 @@ protected:
 	
 	static String dateToString(time_t _theDate);
 
+
 	//time_t getNtpTime();
 
 	static time_t getNtpTime();
 
 	static void sendNTPpacket(IPAddress & address);
+
 
 
 	//String schedulingGUIPrefix;// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,

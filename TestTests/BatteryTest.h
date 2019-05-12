@@ -45,7 +45,7 @@ public:
 	int getBatteryNo();
 	char* getTextResults();//get the textual representation of the test results
 	virtual void generateTextResults();
-	void schedule(String firstRun, String period, int mailSettings);
+	boolean schedule(String firstRun, String period, int mailSettings);
 protected:
 	Communicator* comm;
 	char textResults[250];
@@ -85,6 +85,10 @@ protected:
 
 	void generateSchedulingGUI(Container * c, String prefix);
 
+	boolean isDateValid(String theDate);
+
+
+	boolean isPeriodValid(String thePeriod);
 
 	void saveSchSettingsCallback(int user);
 	void saveSchSettingsToSpiffs();

@@ -154,6 +154,23 @@ String NTPManager::dateToString(time_t _theDate)
 	
 }
 
+time_t NTPManager::stringToDate(String dateStr)
+{
+	if (!isDateValid(dateStr))
+	{
+		return 0;
+	}
+	long outArr[5];
+    parserUtils::retrieveNLongs(dateStr.c_str(), 5, outArr);
+	byte dd = (byte)outArr[0];
+	byte mm = (byte)outArr[1];
+	int yy = (int)outArr[2];
+	byte hh = (byte)outArr[3];
+	byte minmin= (byte)outArr[4];
+	tmElements_t startDateElems = {0,minmin,hh,0,dd,mm,yy};
+	return makeTime(startDateElems);
+}
+
 
 time_t NTPManager::getNtpTime()
 {
@@ -208,3 +225,68 @@ void NTPManager::sendNTPpacket(IPAddress &address)
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
 }
+
+boolean NTPManager::isDateValid(String theDate)
+{
+	long outArr[5];
+	int n = parserUtils::retrieveNLongs(theDate.c_str(), 5, outArr);
+	if (n == 5)
+	{
+		if (outArr[0] > 31|| outArr[0]<1)
+		{
+			return false;
+		}
+
+		if (outArr[1] > 12|| outArr[0]<1)
+		{
+			return false;
+		}
+
+		if (outArr[2] < 2000|| outArr[2]>4000)//futureproofing
+		{
+			return false;
+		}
+
+		if (outArr[3] < 0|| outArr[3]>23)
+		{
+			return false;
+		}
+
+		if (outArr[4] < 0|| outArr[4]>59)
+		{
+			return false;
+		}
+		return true;
+	}
+		Serial.println(theDate);
+		Serial.println(n);
+	return false;
+}
+
+
+boolean NTPManager::isPeriodValid(String thePeriod)
+{
+	long outArr[3];
+	int n = parserUtils::retrieveNLongs(thePeriod.c_str(), 3, outArr);
+	Serial.println(n);
+	if (n == 3)
+	{
+		if (outArr[0] < 0)
+		{
+			return false;
+		}
+
+		if (outArr[1] <0 || outArr[1] > 23)
+		{
+			return false;
+		}
+
+		if (outArr[2] < 0 || outArr[2]>59)
+		{
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+

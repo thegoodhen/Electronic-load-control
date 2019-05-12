@@ -3,6 +3,7 @@
 #include "TestScheduler.h"
 
 #include <functional>
+#include "NTPManager.h"
 
 using namespace std::placeholders;	
 
@@ -223,18 +224,28 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 		config.storeResults = storeResults;
 
 		int mailSettings = gui->find((String)prefix + "lbMail")->retrieveIntValue(user);
-		schedule(firstRun, period, mailSettings);
+		if (!schedule(firstRun, period, mailSettings))
+		{
+			gui->showError(user, "Invalid scheduling settings.");
+		}
 		
 	}
 
-	void BatteryTest::schedule(String firstRun, String period, int mailSettings)
+	boolean BatteryTest::schedule(String firstRun, String period, int mailSettings)
 	{
+		if (!NTPManager::isDateValid(firstRun))
+		{
+			return false;
+		}
+		if (!NTPManager::isPeriodValid(period))
+		{
+			return false;
+		}
 		firstRun.toCharArray(config.firstRun, 50);
 		period.toCharArray(config.runPeriod, 50);
 		config.mailSettings = mailSettings;
 		saveSchSettingsToSpiffs();
-
-
+		return true; 
 	}
 
 	
