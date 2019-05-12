@@ -23,6 +23,7 @@ private:
 	float voltageSum;
 	float averageVoltage;
 	int reportResults() override;
+	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
 	const int MEASURMENTS_COUNT = 10;

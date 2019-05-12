@@ -60,6 +60,9 @@
     <ClInclude Include="StatusDisplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SerialManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ElectronicLoad.cpp">
@@ -99,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StatusDisplay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -143,6 +143,10 @@ void VoltageTest::generateGUI(Container * c)
 
 
 }
+int VoltageTest::getType()
+{
+	return 0;
+}
 
 
 void VoltageTest::saveSettingsToSpiffs()

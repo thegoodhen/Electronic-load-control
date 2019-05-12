@@ -22,6 +22,7 @@
 #include <TGH_GUI.h>
 #include "NTPManager.h"
 #include "StatusDisplay.h"
+#include "SerialManager.h"
 
 GUI gui;
 
@@ -55,6 +56,7 @@ VoltageTest* vt;
 Communicator* comm;
 TestScheduler* ts;
 StatusDisplay* sd;
+SerialManager* sm;
 
 NTPManager* ntpm;
 
@@ -83,6 +85,7 @@ void setup()
   ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
+  sm = new SerialManager(ts);
   /*
   comm->login();
   comm->sendHeader("slepice");
@@ -175,6 +178,7 @@ void loop()
 
 	gui.loop();//you have to call this function in loop() for this library to work!
 	sd->loop();
+	sm->loop();
 	ElectronicLoad::heartBeat();
 }
 

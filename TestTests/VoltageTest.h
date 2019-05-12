@@ -16,6 +16,7 @@ public:
 	void handle() override;
 	String getTextResults() override;//get the textual representation of the test results
 	void generateGUI(Container* c) override;
+	int getType() override;
 	void saveSettingsToSpiffs();
 	void loadSettingsFromSpiffs();
 	String getId();

@@ -18,7 +18,9 @@ private:
 public:
 	void addTest(BatteryTest* bt);
 	BatteryTest* getCurrentTest();
-	void handle(); 
+	void handle();
+	BatteryTest* findTest(int testType, int batteryNo);
+
 	void notifyAboutTestEnd();
 	BatteryTest* getLastTest(int batteryNo);
 	void notifyAboutTestStart(BatteryTest * _bt);

@@ -39,6 +39,7 @@ public:
 	void processRequestToStopTest(int userNo);
 	void beginTest(boolean scheduled);
 	virtual void handle();
+	virtual int getType();
 	void fastForwardScheduling();
 	int getBatteryNo();
 	virtual String getTextResults();//get the textual representation of the test results

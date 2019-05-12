@@ -40,6 +40,19 @@ void TestScheduler::handle()
 
 }
 
+BatteryTest* TestScheduler::findTest(int testType, int batteryNo)
+{
+
+	for (std::vector<BatteryTest*>::size_type i = 0; i != tests.size(); i++) {
+		BatteryTest* bt = (tests)[i];
+		if (bt->getType() == testType && bt->getBatteryNo() == batteryNo)
+		{
+			return bt;
+		}
+	}
+	return NULL;
+}
+
 void TestScheduler::notifyAboutTestEnd()
 {
 	Serial.println("SCHEDULER KNOWS: TEST END!");

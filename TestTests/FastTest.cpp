@@ -70,7 +70,10 @@ void FastTest::handle()
 			Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
 			ch->clear();
 			//TODO: handle errors
-			int state=ElectronicLoad::connectBattery(this->batteryNo);
+			if (ElectronicLoad::connectBattery(this->batteryNo) != 0)
+			{
+
+			}
 			ElectronicLoad::setUpdatePeriod(0.25);
 			phase = PHASE_NOLOAD;
 			return;
@@ -154,6 +157,12 @@ int FastTest::reportResults()
 	return 0;
 	
 }
+
+int FastTest::getType()
+{
+	return 1;
+}
+
 
 void FastTest::generateGUI(Container * c)
 {

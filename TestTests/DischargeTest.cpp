@@ -105,6 +105,12 @@ int DischargeTest::reportResults()
 	return 0;
 }
 
+int DischargeTest::getType()
+{
+	return 2;
+}
+
+
 void DischargeTest::generateGUI(Container * c)
 {
 	

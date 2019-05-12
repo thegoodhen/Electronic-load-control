@@ -121,6 +121,7 @@
     <ClInclude Include="HovnoTest.h" />
     <ClInclude Include="NTPManager.h" />
     <ClInclude Include="parserUtils.h" />
+    <ClInclude Include="SerialManager.h" />
     <ClInclude Include="SpiffsPersistentSettingsUtils.h" />
     <ClInclude Include="StatusDisplay.h" />
     <ClInclude Include="TestScheduler.h" />
@@ -137,6 +138,7 @@
     <ClCompile Include="HovnoTest.cpp" />
     <ClCompile Include="NTPManager.cpp" />
     <ClCompile Include="parserUtils.cpp" />
+    <ClCompile Include="SerialManager.cpp" />
     <ClCompile Include="SpiffsPersistentSettingsUtils.cpp" />
     <ClCompile Include="StatusDisplay.cpp" />
     <ClCompile Include="TestScheduler.cpp" />

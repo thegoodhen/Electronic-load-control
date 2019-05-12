@@ -25,7 +25,7 @@ void StatusDisplay::begin()
 void StatusDisplay::loop()
 {
 	static unsigned long lastMillis;
-	if (millis() - lastMillis < 1000)
+	if (millis() - lastMillis < 2000)
 	{
 		return;
 	}
@@ -35,18 +35,20 @@ void StatusDisplay::loop()
 	sprintf(timeStr, "%d:%d:%d %d.%d.%d", hour(), minute(), second(), day(), month(), year());
 	l->setText(ALL_CLIENTS, timeStr);
 	Label* l2 = (Label*)(this->cont->getGUI()->find("lblIP"));
-	l2->setText(ALL_CLIENTS, WiFi.localIP().toString());
+	//l2->setText(ALL_CLIENTS, WiFi.localIP().toString());
 	Label* l3 = (Label*)(this->cont->getGUI()->find("lblSSID"));
-	l3->setText(ALL_CLIENTS, WiFi.SSID());
+	//l3->setText(ALL_CLIENTS, WiFi.SSID());
 	
-	/*
+	
 	Text* b1t = (Text*)(this->cont->getGUI()->find("sdB1lastResults"));
 	BatteryTest* lastTestB1 = ts->getLastTest(1);
 	BatteryTest* lastTestB2 = ts->getLastTest(2);
 	if (lastTestB1 != NULL)
 	{
+		//Serial.println(lastTestB1->getTextResults());
 		b1t->setText(ALL_CLIENTS, lastTestB1->getTextResults());
 	}
+	/*
 	Text* b2t = (Text*)(this->cont->getGUI()->find("sdB2lastResults"));
 	if (lastTestB2 != NULL)
 	{

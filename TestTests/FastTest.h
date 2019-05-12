@@ -30,6 +30,7 @@ private:
 	float loadCurrent=20;
 	float scheduledLoadCurrent;
 	int reportResults() override;
+	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
 	double voltageAtStart;

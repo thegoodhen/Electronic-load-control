@@ -81,7 +81,7 @@ int ElectronicLoad::sendData(uint8_t* data, int len, unsigned long timeout)
     delay(1);
     if (millis() - startMillis > timeout)
     {
-      Serial.println("timeout!!");
+      Serial.println("timeout when waiting for the slave to poll data!!");
       return 1;
     }
   }
@@ -182,16 +182,14 @@ int ElectronicLoad::setI(float theI)
 {
     queueByte(1);//set current
     queueFloat(theI);
-    sendData(spiDataOut, spiOutIndex);
-	return 0;
+    return sendData(spiDataOut, spiOutIndex);
 }
 
 int ElectronicLoad::setUpdatePeriod(float thePeriod)
 {
 	queueByte(2);//set period
     queueFloat(thePeriod);
-    sendData(spiDataOut, spiOutIndex);
-	return 0;
+    return sendData(spiDataOut, spiOutIndex);
 }
 
 int ElectronicLoad::getI(float * target)
