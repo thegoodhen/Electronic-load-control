@@ -17,19 +17,21 @@ public:
 	void start(boolean scheduled, float loadCurrent);
 	FastTest(TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void updateChart();
+	String getName() override;
 	void handle() override;
+	void reportResultsOnGUI() override;
 	void loadSettingsFromSpiffs();
-	String getTextResults() override;
+	void generateTextResults() override;
 	String getId() override;
 	//get the textual representation of the test results
 	void generateGUI(Container* c) override;
 	void saveSettingsToSpiffs();
 private:
-	Communicator* comm;
+	//Communicator* comm;
 	Container* cont;
 	float loadCurrent=20;
 	float scheduledLoadCurrent;
-	int reportResults() override;
+	//int sendEmailReport() override;
 	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);

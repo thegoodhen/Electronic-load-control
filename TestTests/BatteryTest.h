@@ -33,6 +33,7 @@ class BatteryTest
 {
 private:
 public:
+	virtual String getName();
 	char* slepice = "";
 	void setScheduler(TestScheduler * _sch);
 	time_t getScheduledStartTime();
@@ -42,9 +43,12 @@ public:
 	virtual int getType();
 	void fastForwardScheduling();
 	int getBatteryNo();
-	virtual String getTextResults();//get the textual representation of the test results
+	char* getTextResults();//get the textual representation of the test results
+	virtual void generateTextResults();
+	void schedule(String firstRun, String period, int mailSettings);
 protected:
-
+	Communicator* comm;
+	char textResults[250];
 	TestScheduler* scheduler=NULL;
 	Container* cont=NULL;
 	boolean canRunAutomatically;//whether the test is scheduled to be run automatically
@@ -63,7 +67,7 @@ protected:
 	boolean testFailed=0;//whether the test succeeded (false) or not (true)
 	
 	//virtual void start(boolean scheduled);
-	virtual int reportResults();
+	virtual int sendEmailReport();
 	virtual void generateGUI(Container* c);//fill a container with a GUI
 	virtual String getId()=0;
 
@@ -71,8 +75,13 @@ protected:
 	void setSchedulingPeriod(int days, int hours, int minutes);
 
 
-	void endTest();
 
+
+	void endTest(int endMode);
+
+	void failOnError(int status);
+
+	virtual void reportResultsOnGUI();
 
 	void generateSchedulingGUI(Container * c, String prefix);
 

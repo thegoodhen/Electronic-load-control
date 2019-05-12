@@ -14,15 +14,15 @@ public:
 	 DischargeTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void start(boolean scheduled);
 	void handle() override;
-	String getTextResults() override;//get the textual representation of the test results
+	String getName() override;
 	void generateGUI(Container* c) override;
 	String getId();
 private:
-	Communicator* comm;
+	//Communicator* comm;
 	Container* cont;
 	float voltageSum;
 	float averageVoltage;
-	int reportResults() override;
+	int sendEmailReport() override;
 	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);

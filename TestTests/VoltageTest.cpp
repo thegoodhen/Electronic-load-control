@@ -22,6 +22,22 @@
 	this->fastForwardScheduling();
 }
 
+ void VoltageTest::generateTextResults()
+ {
+	sprintf(textResults, "%s\nOpen-circuit voltage (out of %d samples): %.4f", this->getGenericLastTestInfo().c_str(), MEASURMENTS_COUNT, averageVoltage);
+ }
+
+ void VoltageTest::reportResultsOnGUI()
+ {
+	 double arr[] = { now(),averageVoltage };
+	 Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");//TODO: optimize
+	 ch->addPoint(ALL_CLIENTS, arr, 2);
+
+	 Text* t = (Text*)cont->getGUI()->find(this->getId() + "lastResults");
+	 t->setDefaultText(this->getTextResults());
+	 t->setText(ALL_CLIENTS, getTextResults());
+ }
+
 void VoltageTest::handle()
 {
 	static int currentMeasurmentNumber = 0;
@@ -43,7 +59,7 @@ void VoltageTest::handle()
 			//int state=ElectronicLoad::connectBattery(this->batteryNo);
 			currentMeasurmentNumber = 0;
 			voltageSum = 0;
-			ElectronicLoad::setUpdatePeriod(updatePeriod);
+			failOnError(ElectronicLoad::setUpdatePeriod(updatePeriod));
 			Serial.println("prep phase");
 			phase = PHASE_MEASURING;
 			return;
@@ -71,15 +87,9 @@ void VoltageTest::handle()
 					testFailed = true;
 				}
 
-				double arr[] = { now(),averageVoltage };
 
-				Chart* ch = (Chart*)cont->getGUI()->find(this->getId()+"chLast");//TODO: optimize
-				ch->addPoint(ALL_CLIENTS, arr,2);
-				endTest();
+				endTest(testFailed);
 
-				Text* t= (Text*)cont->getGUI()->find(this->getId() + "lastResults");
-				t->setDefaultText(this->getTextResults());
-				t->setText(ALL_CLIENTS, getTextResults());
 			}
 		}
 		
@@ -87,17 +97,6 @@ void VoltageTest::handle()
 	}
 }
 
-int VoltageTest::reportResults()
-{
-		comm->login();
-		comm->sendHeader((String)"BATTERY "+batteryNo+(String)" TEST RESULTS");//TODO: make sure that this changes when we failed
-		comm->printText("Battery voltage test complete.<br>");
-		comm->printText("Voltage average (out of "+(String)MEASURMENTS_COUNT+(String) " samples):  "+averageVoltage);
-		comm->exit();
-		
-		//Serial.println(getTextResults());
-	return 0;
-}
 
 void VoltageTest::generateGUI(Container * c)
 {
@@ -148,6 +147,10 @@ int VoltageTest::getType()
 	return 0;
 }
 
+String VoltageTest::getName()
+{
+	return (String)"Voltage test of battery " + this->batteryNo;
+}
 
 void VoltageTest::saveSettingsToSpiffs()
 {
@@ -213,10 +216,6 @@ String VoltageTest::getId()
 	return "vt_b" + (String)this->batteryNo;
 }
 
-String VoltageTest::getTextResults()
-{
-	return "Vysledek je... SLEPICE! :3";
-}
 
 void VoltageTest::startTestCallback(int user)
 {

@@ -47,6 +47,11 @@ struct command {
 static void startTest(char** params, int argCount);
 static void help(char** params, int argCount);
 
+static void connectWiFi(char ** params, int argCount);
+static void disconnectWiFi(char ** params, int argCount);
+static void lastResult(char ** params, int argCount);
+static void schedule(char ** params, int argCount);
+
 static int getBatteryNo(char * input);
 
 static int getTestType(char * theName);

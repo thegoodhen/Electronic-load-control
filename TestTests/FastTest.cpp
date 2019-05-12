@@ -44,6 +44,10 @@ void FastTest::updateChart()
 	}
 }
 
+String FastTest::getName()
+{
+	return (String)"Fast test of battery " + this->batteryNo;
+}
 
 void FastTest::handle()
 {
@@ -70,11 +74,8 @@ void FastTest::handle()
 			Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
 			ch->clear();
 			//TODO: handle errors
-			if (ElectronicLoad::connectBattery(this->batteryNo) != 0)
-			{
-
-			}
-			ElectronicLoad::setUpdatePeriod(0.25);
+			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
+			failOnError(ElectronicLoad::setUpdatePeriod(0.25));
 			phase = PHASE_NOLOAD;
 			return;
 		}
@@ -85,7 +86,7 @@ void FastTest::handle()
 			{
 				voltageAtStart = this->lastMeasuredU;
 				phase = PHASE_LOADING;
-				ElectronicLoad::setI(loadCurrent);
+				failOnError(ElectronicLoad::setI(loadCurrent));
 			}
 		}
 		if (phase == PHASE_LOADING)
@@ -97,7 +98,7 @@ void FastTest::handle()
 				this->voltageWhenLoaded= this->lastMeasuredU;
 				this->currentWhenLoaded = this->voltageWhenLoaded / 2;//TODO: actually measure the current...
 				Serial.println("entering the recovery phase...");
-				int state=ElectronicLoad::connectBattery(0);
+				failOnError(ElectronicLoad::connectBattery(0));
 				phase = PHASE_RECOVERY;
 				return;
 			}
@@ -114,7 +115,6 @@ void FastTest::handle()
 			if (millis() - startMillis > 35000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
 				//end of the test
-				endTest();
 				this->voltageAtEnd = this->lastMeasuredU;
 				double loadingResistance = 2;//TODO: calculate from the current and stuff...
 				this->internalResistance = ((this->voltageAtStart*loadingResistance)/voltageWhenLoaded)-loadingResistance;
@@ -124,15 +124,16 @@ void FastTest::handle()
 				{
 					this->testFailed = true;
 				}
+				if(testFailed)
+				{ 
+					endTest(1);
+				}
+				else
+				{
+					endTest(0);
+				}
 
 
-				double arr[] = { now(),voltageAtStart,voltageWhenLoaded,voltageAtEnd,internalResistance};
-
-				Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");
-				ch->addPoint(ALL_CLIENTS, arr,5);
-				Text* t= (Text*)cont->getGUI()->find(this->getId() + "lastResults");
-				t->setDefaultText(this->getTextResults());
-				t->setText(ALL_CLIENTS, getTextResults());
 
 			}
 		}
@@ -141,22 +142,19 @@ void FastTest::handle()
 	
 }
 
-int FastTest::reportResults()
+void FastTest::reportResultsOnGUI()
 {
-	
-	if (this->emailReport == REPORT_MAIL_ONFINISHED || this->emailReport == REPORT_MAIL_ONSTARTANDFINISH)//TODO: or if we failed and should report on fail
-	{
-		
-		comm->login();
-		comm->sendHeader("TEST RESULTS");//TODO: make sure that this changes when we failed
-		comm->printText(this->getTextResults());
-		comm->exit();
-		
-		//Serial.println(getTextResults());
-	}
-	return 0;
-	
+
+	double arr[] = { now(),voltageAtStart,voltageWhenLoaded,voltageAtEnd,internalResistance };
+
+	Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");
+	ch->addPoint(ALL_CLIENTS, arr, 5);
+	Text* t = (Text*)cont->getGUI()->find(this->getId() + "lastResults");
+	t->setDefaultText(this->getTextResults());
+	t->setText(ALL_CLIENTS, getTextResults());
+
 }
+
 
 int FastTest::getType()
 {
@@ -263,12 +261,10 @@ void FastTest::loadSettingsFromSpiffs()
 
 
 
-String FastTest::getTextResults()
+void FastTest::generateTextResults()
 {
 
-	char specificResults[200];
-	sprintf(specificResults, "Open-circuit voltage: \t<b>%.4fV</b><br>Voltage under load: \t<b>%.4fV</b><br>Internal resistance: \t<b>%.4f ohm</b>", this->voltageAtStart, this->voltageWhenLoaded, this->internalResistance);
-	return this->getGenericLastTestInfo() + "\n"+specificResults;
+	sprintf(textResults, "%s\nOpen-circuit voltage: \t<b>%.4fV</b>\n<br>Voltage under load: \t<b>%.4fV</b>\n<br>Internal resistance: \t<b>%.4f ohm</b>\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->internalResistance);
 }
 
 String FastTest::getId()

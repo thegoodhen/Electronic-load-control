@@ -21,7 +21,8 @@ public:
 	void handle();
 	BatteryTest* findTest(int testType, int batteryNo);
 
-	void notifyAboutTestEnd();
+	void notifyAboutTestEnd(int endMode);
+
 	BatteryTest* getLastTest(int batteryNo);
 	void notifyAboutTestStart(BatteryTest * _bt);
 };

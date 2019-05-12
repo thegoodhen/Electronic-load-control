@@ -11,7 +11,7 @@ class HovnoTest:public BatteryTest
 public:
 	String getId() override;
 	void handle() override;
-	int reportResults();
+	int sendEmailReport();
 	void generateGUI(Container* c) override;
 	String getTextResults() override;
 	//get the textual representation of the test results

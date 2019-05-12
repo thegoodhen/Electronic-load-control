@@ -55,8 +55,8 @@ void DischargeTest::handle()
 		if (phase == PHASE_PREPARATION)
 		{
 			//TODO: handle errors
-			int state=ElectronicLoad::connectBattery(this->batteryNo);
-			ElectronicLoad::setUpdatePeriod(updatePeriod);
+			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
+			failOnError(ElectronicLoad::setUpdatePeriod(updatePeriod));
 			Serial.println("prep phase");
 			phase = PHASE_LOADING;
 			return;
@@ -81,7 +81,14 @@ void DischargeTest::handle()
 				{
 					testFailed = true;
 				}
-				endTest();
+				if (testFailed)
+				{
+					endTest(1);
+				}
+				else
+				{
+					endTest(0);
+				}
 			}
 		}
 		
@@ -89,7 +96,12 @@ void DischargeTest::handle()
 	}
 }
 
-int DischargeTest::reportResults()
+String DischargeTest::getName()
+{
+	return (String)"Discharge test of battery " + this->batteryNo;
+}
+
+int DischargeTest::sendEmailReport()
 {
 		comm->login();
 		comm->sendHeader((String)"BATTERY "+batteryNo+(String)" TEST RESULTS");//TODO: make sure that this changes when we failed
@@ -155,10 +167,6 @@ String DischargeTest::getId()
 	return "vt_b" + (String)this->batteryNo;
 }
 
-String DischargeTest::getTextResults()
-{
-	return "Vysledek je... SLEPICE! :3";
-}
 
 void DischargeTest::startTestCallback(int user)
 {

@@ -118,7 +118,6 @@
     <ClInclude Include="Communicator.h" />
     <ClInclude Include="ElectronicLoad.h" />
     <ClInclude Include="FastTest.h" />
-    <ClInclude Include="HovnoTest.h" />
     <ClInclude Include="NTPManager.h" />
     <ClInclude Include="parserUtils.h" />
     <ClInclude Include="SerialManager.h" />
@@ -135,7 +134,6 @@
     <ClCompile Include="Communicator.cpp" />
     <ClCompile Include="ElectronicLoad.cpp" />
     <ClCompile Include="FastTest.cpp" />
-    <ClCompile Include="HovnoTest.cpp" />
     <ClCompile Include="NTPManager.cpp" />
     <ClCompile Include="parserUtils.cpp" />
     <ClCompile Include="SerialManager.cpp" />

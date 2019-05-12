@@ -12,7 +12,7 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"} };
  TestScheduler* SerialManager::ts;
 
 
@@ -56,6 +56,109 @@ void SerialManager::help(char** params, int argCount)
   //TODO: handle contextual help
   Serial.println("HELP\tthis command. Use HELP|COMMANDNAME to see contextual help.");
   Serial.println("STARTTEST\tstart a test. Correct usage: \"STARTTEST|TESTTYPE|BATTERYNO\" - i.e. \"STARTTEST|VOLTAGE|1\"");
+}
+
+void SerialManager::connectWiFi(char** params, int argCount)
+{
+	if (argCount > 2 )
+	{
+		Serial.println("Incorrect usage. Correct usage:");
+		Serial.println("CONNECTWIFI or CONNECTWIFI|SSID or CONNECTWIFI|SSID|PASSWORD");
+	}
+	WiFi.disconnect();
+	if (argCount == 0)
+	{
+		WiFi.begin();
+	}
+	if (argCount == 1)
+	{
+		WiFi.begin(params[0]);
+	}
+	if (argCount == 2)
+	{
+		WiFi.begin(params[0], params[1]);
+	}
+	unsigned long startMillis = millis();
+
+	while (WiFi.status() != WL_CONNECTED) 
+	{
+		Serial.println("connecting...");
+		delay(1000);
+		if (millis() - startMillis > 10000)
+		{
+			Serial.println("Unable to connect! Aborting.");
+			return;
+		}
+	}
+	Serial.print("Connected to: ");
+	Serial.println(WiFi.SSID());
+}
+
+void SerialManager::disconnectWiFi(char** params, int argCount)
+{
+	if (argCount != 0)
+	{
+		Serial.println("Usage: DISCONNECTWIFI");
+	}
+	WiFi.disconnect(true);
+	Serial.println("WiFi disconnected.");
+}
+
+void SerialManager::schedule(char** params, int argCount)
+{
+	if (argCount != 5)
+	{
+		Serial.println("Usage: SCHEDULE|TESTTYPE|BATTERYNO|STARTDATE|PERIOD|MAILSETTINGS, that is SCHEDULE|TESTTYPE|BATTERYNO|DD.MM.YYYY HH:MM|DD:HH:MM|MAILSETTINGS");
+	}
+
+  int testType = getTestType(params[0]);
+  if (testType==-1)
+  {
+    return;
+  }
+
+  int bNo = getBatteryNo(params[1]);
+  if (bNo == -1)
+  {
+	  return;
+  }
+  BatteryTest* bt=ts->findTest(testType,bNo);
+
+  if (bt != NULL)
+  {
+	  bt->schedule(params[0], params[1], 0);
+  }
+}
+
+void SerialManager::lastResult(char** params, int argCount)
+{
+  if (argCount != 2)
+  {
+    Serial.println("Incorrect usage. Correct usage: LASTRESULT|TYPE|BATTERYNO");
+    return;
+  }
+  int testType = getTestType(params[0]);
+  if (testType==-1)
+  {
+    return;
+  }
+
+  int bNo = getBatteryNo(params[1]);
+  if (bNo == -1)
+  {
+	  return;
+  }
+  BatteryTest* bt=ts->findTest(testType,bNo);
+  if (bt != NULL)
+  {
+	  Serial.println("Last results for "+bt->getName());
+	  Serial.println(bt->getTextResults());
+
+  }
+  else
+  {
+	  Serial.println("No such test.");
+  }
 }
 
 int SerialManager :: getBatteryNo(char* input)

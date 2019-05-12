@@ -13,7 +13,7 @@ void HovnoTest::handle()
 
 }
 
-int HovnoTest::reportResults()
+int HovnoTest::sendEmailReport()
 {
 
 }

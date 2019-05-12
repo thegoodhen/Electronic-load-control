@@ -53,7 +53,7 @@ BatteryTest* TestScheduler::findTest(int testType, int batteryNo)
 	return NULL;
 }
 
-void TestScheduler::notifyAboutTestEnd()
+void TestScheduler::notifyAboutTestEnd(int endMode)
 {
 	Serial.println("SCHEDULER KNOWS: TEST END!");
 	if (this->currentTest->getBatteryNo() == 1)

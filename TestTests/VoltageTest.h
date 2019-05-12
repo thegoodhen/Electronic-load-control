@@ -13,19 +13,20 @@ class VoltageTest:public BatteryTest
 public:
 	//VoltageTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	VoltageTest(TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
+	void generateTextResults() override;
+	void reportResultsOnGUI() override;
 	void handle() override;
-	String getTextResults() override;//get the textual representation of the test results
 	void generateGUI(Container* c) override;
 	int getType() override;
+	String getName() override;
 	void saveSettingsToSpiffs();
 	void loadSettingsFromSpiffs();
 	String getId();
 private:
-	Communicator* comm;
+	//Communicator* comm;
 	Container* cont;
 	float voltageSum;
 	float averageVoltage;
-	int reportResults() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
 	const int MEASURMENTS_COUNT = 10;

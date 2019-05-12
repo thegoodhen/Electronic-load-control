@@ -11,6 +11,11 @@ int BatteryTest::getBatteryNo()
 	return batteryNo;
 }
 
+char* BatteryTest::getTextResults()
+{
+	return textResults;
+}
+
 void BatteryTest::setFirstScheduledStartTime(int day, int month, int year, int hour, int min)
 {
 	
@@ -71,28 +76,78 @@ void BatteryTest::fastForwardScheduling()
 		}
 }
 
-void BatteryTest::endTest()
+/*
+mode 0 - pass
+mode 1 - fail
+mode 2 - error
+mode 3 - interrupted by user
+*/
+void BatteryTest::endTest(int endMode)
 {
-	this->scheduler->notifyAboutTestEnd();
+
+	this->scheduler->notifyAboutTestEnd(endMode);
 	ElectronicLoad::connectBattery(0);
 	ElectronicLoad::setI(0);
 	ElectronicLoad::setUpdatePeriod(0);
 	this->lastRunDuration = now() - this->lastRunStart;
-	
-	if ((emailReport == REPORT_MAIL_ONFAIL && testFailed) || emailReport == REPORT_MAIL_ONFINISHED)
+
+	if (endMode == 2)//error
 	{
-		reportResults();
+		this->state = STATE_ERROR;//TODO: report error using email
+		sprintf(textResults, "FATAL ERROR");
 	}
-				Serial.println("end of test");
-				if (canRunAutomatically)
-				{
-					state = STATE_SCHEDULED;
-				}
-				else
-				{
-					state = STATE_STOPPED;
-				}
+	if (endMode == 3)//interrupted by user
+	{
+		this->state = STATE_INTERRUPTED_BY_USER;
+		sprintf(textResults, "INTERRUPTED BY USER");
+	}
+
+	if (endMode == 0 || endMode == 1)
+	{
+		generateTextResults();
+		reportResultsOnGUI();
+		if ((emailReport == REPORT_MAIL_ONFAIL && testFailed) || emailReport == REPORT_MAIL_ONFINISHED)
+		{
+			sendEmailReport();
+		}
+		Serial.println("end of test");
+		if (canRunAutomatically)
+		{
+			state = STATE_SCHEDULED;
+		}
+		else
+		{
+			state = STATE_STOPPED;
+		}
+	}
+
+
+	Serial.println("TEST FINISHED. RESULTS:");
+	Serial.println(textResults);
+
 }
+
+void BatteryTest::failOnError(int status)
+{
+	if (status != 0)
+	{
+		endTest(2);
+	}
+}
+
+int BatteryTest::sendEmailReport()
+{
+	
+		comm->login();
+		comm->sendHeader("TEST RESULTS: "+getName());//TODO: make sure that this changes when we failed
+		comm->printText(this->getTextResults());
+		comm->exit();
+		
+		//Serial.println(getTextResults());
+	return 0;
+	
+}
+
 
 void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 {
@@ -160,19 +215,24 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 
 		
 		String firstRun = gui->find((String)prefix+ "tifr")->retrieveText(user);
-		firstRun.toCharArray(config.firstRun, 50);
 
 
 		String period = gui->find((String)prefix + "tiP")->retrieveText(user);
-		period.toCharArray(config.runPeriod, 50);
 
 		int storeResults = gui->find((String)prefix + "cbir")->retrieveIntValue(user);
 		config.storeResults = storeResults;
 
 		int mailSettings = gui->find((String)prefix + "lbMail")->retrieveIntValue(user);
+		schedule(firstRun, period, mailSettings);
+		
+	}
+
+	void BatteryTest::schedule(String firstRun, String period, int mailSettings)
+	{
+		firstRun.toCharArray(config.firstRun, 50);
+		period.toCharArray(config.runPeriod, 50);
 		config.mailSettings = mailSettings;
 		saveSchSettingsToSpiffs();
-		
 
 
 	}
@@ -199,7 +259,7 @@ void BatteryTest::saveSchSettingsToSpiffs()
 	root["runPeriod"] = config.runPeriod;
 	root["storeResults"] = config.storeResults;
 	root["mailSettings"] = config.mailSettings;
-	parseLoadedSettings();
+	parseLoadedSettings();//this will actually apply the settings...
 	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
 }
 
@@ -302,7 +362,7 @@ void BatteryTest::processRequestToStopTest(int userNo)
 		wasRequestedAlready = false;
 		GUI* gui = cont->getGUI();
 		gui->showInfo(userNo, "Test aborted.");
-		endTest();
+		endTest(3);
 	}
 	else
 	{
