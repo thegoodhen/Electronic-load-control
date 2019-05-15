@@ -11,10 +11,12 @@ class DischargeTest:public BatteryTest
 {
 	
 public:
-	 DischargeTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
-	void start(boolean scheduled);
+	 DischargeTest(TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
+	 void start(boolean scheduled);
 	void handle() override;
 	String getName() override;
+	void generateTextResults() override;
+	void reportResultsOnGUI() override;
 	void generateGUI(Container* c) override;
 	String getId();
 private:

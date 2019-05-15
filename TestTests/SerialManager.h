@@ -62,6 +62,8 @@ static void configureEmail(char ** params, int argCount);
 
 static void testEmail(char ** params, int argCount);
 
+static void setOptions(char ** params, int argCount);
+
 static int getBatteryNo(char * input);
 
 static int getTestType(char * theName);

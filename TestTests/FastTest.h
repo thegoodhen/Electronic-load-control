@@ -19,6 +19,7 @@ public:
 	void updateChart();
 	String getName() override;
 	void handle() override;
+	String setOptions(String opt1, String opt2, String opt3, String opt4, String opt5) override;
 	void reportResultsOnGUI() override;
 	void loadSettingsFromSpiffs();
 	void generateTextResults() override;

@@ -13,7 +13,7 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"} };
  TestScheduler* SerialManager::ts;
  Communicator * SerialManager::comm;
 
@@ -263,6 +263,45 @@ void SerialManager::configureEmail(char** params, int argCount)
 void SerialManager::testEmail(char** params, int argCount)
 {
 	comm->sendTestEmail();
+}
+
+
+void SerialManager::setOptions(char** params, int argCount)
+{
+  if (argCount <3)
+  {
+    Serial.println("Incorrect usage. Correct usage: \"SETOPTIONS|TESTTYPE|BATTERYNO|(option 1)|(option 2)|(option 3)|(...)\"");
+    return;
+  }
+  int testType = getTestType(params[0]);
+  if (testType==-1)
+  {
+    return;
+  }
+
+  int bNo = getBatteryNo(params[1]);
+  if (bNo == -1)
+  {
+	  return;
+  }
+  BatteryTest* bt=ts->findTest(testType,bNo);
+
+  if (bt == NULL)
+  {
+	  Serial.println("The selected test is not implemented yet.");
+	  return;
+  }
+  Serial.println("Params 2 je ");
+  String theParams[5] = { "","","","","" };
+  for (int i = 0;i < argCount;i++)
+  {
+	  theParams[i] = params[i + 2];
+  }
+  String msg = bt->setOptions(theParams[0],theParams[1],theParams[2],theParams[3],theParams[4]);
+  if (msg != "")
+  {
+	  Serial.println(msg);
+  }
 }
 
 int SerialManager :: getBatteryNo(char* input)

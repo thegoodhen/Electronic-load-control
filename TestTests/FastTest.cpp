@@ -145,6 +145,21 @@ void FastTest::handle()
 	
 }
 
+	String FastTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
+	{
+		if (opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
+		{
+			return (String)"Usage: SETOPTIONS|FAST|" + batteryNo + "|(maximum Ri before test fails)";
+		}
+		if (parserUtils::retrieveFloat(opt1.c_str(), &maxRiBeforeFail)<0)
+		{
+			return "Not a valid value for internal resistance.";
+		}
+		saveSettingsToSpiffs();
+		return "";
+
+	}
+
 void FastTest::reportResultsOnGUI()
 {
 
@@ -192,7 +207,7 @@ void FastTest::generateGUI(Container * c)
 	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
 	vb->add(btnStoreSettings);
 
-	Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true);
+	Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true,"time","voltage");
 	ch->setPersistency(true);
 	vb->add(ch);
 
@@ -265,7 +280,7 @@ void FastTest::loadSettingsFromSpiffs()
 void FastTest::generateTextResults()
 {
 
-	sprintf(textResults, "%s\nOpen-circuit voltage: \t<b>%.4fV</b>\n<br>Voltage under load: \t<b>%.4fV</b>\n<br>Internal resistance: \t<b>%.4f ohm</b>\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->internalResistance);
+	sprintf(textResults, "%s\nOpen-circuit voltage: \t<b>%.4fV</b>\n<br>Voltage under load: \t<b>%.4fV</b>\n<br>Current under load: %.4f A\n<br>Internal resistance: \t<b>%.4f ohm</b>\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->currentWhenLoaded, this->internalResistance);
 }
 
 String FastTest::getId()
@@ -293,6 +308,5 @@ void FastTest::saveSettingsCallback(int user)
 {
 	GUI* gui = cont->getGUI();
 	String s = gui->find(getId()+"tiMaxRiBeforeFail")->retrieveText(user);
-	parserUtils::retrieveFloat(s.c_str(), &maxRiBeforeFail);
-	saveSettingsToSpiffs();
+	setOptions(s);
 }

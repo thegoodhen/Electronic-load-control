@@ -47,6 +47,7 @@ public:
 	virtual void generateTextResults();
 	boolean schedule(String firstRun, String period, int mailSettings);
 	void endTest(int endMode);
+	virtual String setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="");
 protected:
 	Communicator* comm;
 	char textResults[250];

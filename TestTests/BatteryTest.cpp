@@ -251,6 +251,11 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 		return true; 
 	}
 
+	String BatteryTest::setOptions(String opt1, String opt2, String opt3, String opt4, String opt5)
+	{
+		return "";
+
+	}
 	
 void BatteryTest::saveSchSettingsToSpiffs()
 {

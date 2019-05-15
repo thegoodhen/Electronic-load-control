@@ -173,12 +173,27 @@ void VoltageTest::saveSettingsToSpiffs()
 	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
 }
 
+
+	String VoltageTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
+	{
+		if (opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
+		{
+			return (String)"Usage: SETOPTIONS|VOLTAGE|" + batteryNo + "|(minimum open circuit voltage before the test fails)";
+		}
+		if (parserUtils::retrieveFloat(opt1.c_str(), &failVoltageThreshold)<0)
+		{
+			return "Not a valid value for minimum voltage.";
+		}
+		saveSettingsToSpiffs();
+		return "";
+
+	}
+
 void VoltageTest::saveSettingsCallback(int user)
 {
 	GUI* gui = cont->getGUI();
 	String s = gui->find(getId()+"failVoltage")->retrieveText(user);
-	parserUtils::retrieveFloat(s.c_str(), &failVoltageThreshold);
-	saveSettingsToSpiffs();
+	setOptions(s);
 }
 
 void VoltageTest::loadSettingsFromSpiffs()

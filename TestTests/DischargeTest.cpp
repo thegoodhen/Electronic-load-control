@@ -2,8 +2,9 @@
 #include <functional>
  using namespace std::placeholders; 
 
- DischargeTest::DischargeTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+ DischargeTest::DischargeTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
 	tmElements_t startDateElems = { 0,firstRunMinute,firstRunHour,1, firstRunDay,firstRunMonth,firstRunYear };
@@ -43,20 +44,15 @@ void DischargeTest::start(boolean scheduled)
 void DischargeTest::handle()
 {
 	static int currentMeasurmentNumber = 0;
-	if (state == STATE_SCHEDULED)
-	{
-		if (now() > this->scheduledStartTime)
-		{
-			start(true);
-		}
-	}
+
 	if (state == STATE_RUNNING)
 	{
 		if (phase == PHASE_PREPARATION)
 		{
 			//TODO: handle errors
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
-			failOnError(ElectronicLoad::setUpdatePeriod(updatePeriod));
+			failOnError(ElectronicLoad::setUpdatePeriod(10));
+			failOnError(ElectronicLoad::setI(20));//TODO: pick from two
 			Serial.println("prep phase");
 			phase = PHASE_LOADING;
 			return;
@@ -66,29 +62,36 @@ void DischargeTest::handle()
 			float currentI;//current as in immediate, might wanna relabel that...
 			float currentU;//current as in immediate, might wanna relabel that...
 
-			if (ElectronicLoad::getI(&currentI) == 0)
+			if (ElectronicLoad::areNewReadingsReady())
 			{
+				ElectronicLoad::getI(&currentI);
 				ElectronicLoad::getU(&currentU);
 				//current in amps times the number of seconds = capacity in ampseconds
 				batteryCapacity += currentI * updatePeriod;//TODO: make sure the updatePeriod is correct even when the device is under heavy load
-				extractedEnergy+= updatePeriod * (currentI*currentU);
-			}
-			if (currentU < testEndVoltage)
-			{
-				batteryCapacity = batteryCapacity / 3600;
-				extractedEnergy= extractedEnergy/ 3600;
-				if (batteryCapacity < minCapacity)
+				extractedEnergy += updatePeriod * (currentI*currentU);
+
+				Chart* ch = (Chart*)cont->getGUI()->find(getId() + "chLast");//TODO: optimize
+				double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
+				double arr[] = { currTime,currentU };
+				ch->addPoint(ALL_CLIENTS, arr, 2);
+				if (currentU < testEndVoltage)
 				{
-					testFailed = true;
+					batteryCapacity = batteryCapacity / 3600;
+					extractedEnergy = extractedEnergy / 3600;
+					if (batteryCapacity < minCapacity)
+					{
+						testFailed = true;
+					}
+					if (testFailed)
+					{
+						endTest(1);
+					}
+					else
+					{
+						endTest(0);
+					}
 				}
-				if (testFailed)
-				{
-					endTest(1);
-				}
-				else
-				{
-					endTest(0);
-				}
+
 			}
 		}
 		
@@ -100,6 +103,17 @@ String DischargeTest::getName()
 {
 	return (String)"Discharge test of battery " + this->batteryNo;
 }
+
+void DischargeTest::generateTextResults()
+{
+
+}
+
+void DischargeTest::reportResultsOnGUI()
+{
+
+}
+
 
 int DischargeTest::sendEmailReport()
 {
@@ -133,10 +147,10 @@ void DischargeTest::generateGUI(Container * c)
 	
 	
 	
-	Heading* h = new Heading(getId()+"h1", 1, "Voltage test of battery "+(String)batteryNo);//the heading
+	Heading* h = new Heading(getId()+"h1", 1, "Discharge test of battery "+(String)batteryNo);//the heading
 	vb->add(h);//Always remember to actually add the elements somewhere!
-	Text* t = new Text(getId()+"desc", R"(This test simply measures the no-load voltage of the battery; it only takes a few seconds and can be used to estimate the state of charge.)");//We add some explanation
-	vb->add(t);
+	//Text* t = new Text(getId()+"desc", R"(This test simply measures the no-load voltage of the battery; it only takes a few seconds and can be used to estimate the state of charge.)");//We add some explanation
+	//vb->add(t);
 	
 	TextInput* ti1 = new TextInput(getId() + (String)"failVoltage", "Minimum measured voltage before test fails");
 	vb->add(ti1);
@@ -157,14 +171,11 @@ void DischargeTest::generateGUI(Container * c)
 	vb->add(btnStartTest);
 	generateSchedulingGUI(vb, this->getId());
 
-
-
-
 }
 
 String DischargeTest::getId()
 {
-	return "vt_b" + (String)this->batteryNo;
+	return "dt_b" + (String)this->batteryNo;
 }
 
 
@@ -173,7 +184,7 @@ void DischargeTest::startTestCallback(int user)
 	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 
-	start(false);
+	beginTest(false);
 
 }
 

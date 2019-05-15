@@ -18,6 +18,7 @@
 //#include "HovnoTest.h"
 #include "FastTest.h"
 #include "VoltageTest.h"
+#include "DischargeTest.h"
 #include <WiFiClient.h>
 #include <TGH_GUI.h>
 #include "NTPManager.h"
@@ -53,6 +54,7 @@ void sendNTPpacket(IPAddress &address);
 //HovnoTest* HOVNOUS;
 FastTest* ft;
 VoltageTest* vt;
+DischargeTest* dt;
 Communicator* comm;
 TestScheduler* ts;
 StatusDisplay* sd;
@@ -84,6 +86,7 @@ void setup()
   //comm->begin();
   ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  dt = new DischargeTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
   sm = new SerialManager(ts, comm);
   /*
@@ -123,8 +126,9 @@ void initGUI()
 	tp->addTab(tab3);//We add the tab to the tabPane
 
 
-	ft->generateGUI(tab2);
-	vt->generateGUI(tab2);
+	//ft->generateGUI(tab2);
+	//vt->generateGUI(tab2);
+	dt->generateGUI(tab2);
 
 	
 
