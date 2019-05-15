@@ -24,13 +24,16 @@ protected:
 	static uint8_t spiDataOut[32];
 	static volatile boolean dataSent ;
 	static float I;
-	static float U;
+	static float U1;
+	static float U2;
 public:
 	static int connectedBattery;
 	static int setI(float theI);
 	static int setUpdatePeriod(float thePeriod);
 	static int getI(float* target);
-	static int getU(float* target);
+	static int getU1(float* target);
+	static int getU(float * target, int batteryNo);
+	static int getU2(float* target);
 	static int getT(float* target);
 	static float parseSPIFloat(uint8_t * data);
 	static byte parseSPIByte(uint8_t * data);

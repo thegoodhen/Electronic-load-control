@@ -2,8 +2,9 @@
 #include <functional>
  using namespace std::placeholders; 
 
- VoltageTest::VoltageTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+ VoltageTest::VoltageTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+    this->batteryNo = _batteryNo;
 	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
@@ -72,7 +73,7 @@ void VoltageTest::handle()
 				return;
 			}
 
-			if (ElectronicLoad::getU(&currentU) == 0)
+			if (ElectronicLoad::getU(&currentU, batteryNo) == 0)
 			{
 				voltageSum += currentU;
 			}

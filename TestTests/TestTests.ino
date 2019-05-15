@@ -54,6 +54,7 @@ void sendNTPpacket(IPAddress &address);
 //HovnoTest* HOVNOUS;
 FastTest* ft;
 VoltageTest* vt;
+VoltageTest* vtb2;
 DischargeTest* dt;
 Communicator* comm;
 TestScheduler* ts;
@@ -85,7 +86,8 @@ void setup()
 
   //comm->begin();
   ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vtb2 = new VoltageTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   dt = new DischargeTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
   sm = new SerialManager(ts, comm);
@@ -127,8 +129,9 @@ void initGUI()
 
 
 	//ft->generateGUI(tab2);
-	//vt->generateGUI(tab2);
-	dt->generateGUI(tab2);
+	vt->generateGUI(tab2);
+	vtb2->generateGUI(tab2);
+	//dt->generateGUI(tab2);
 
 	
 

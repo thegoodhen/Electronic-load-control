@@ -7,7 +7,8 @@ int ElectronicLoad::spiOutIndex = 0;
 volatile boolean ElectronicLoad::dataSent= false;
 
 float ElectronicLoad::I = 0;
-float ElectronicLoad::U = 0;
+float ElectronicLoad::U1 = 0;
+float ElectronicLoad::U2 = 0;
 
 uint8_t ElectronicLoad::spiDataOut[32];
 
@@ -105,7 +106,8 @@ void ElectronicLoad::onData(uint8_t* data, size_t len)
 
 	
     Serial.println(parseSPIByte(data));
-    U=parseSPIFloat(data);
+    U1=parseSPIFloat(data);
+    U2=parseSPIFloat(data);
     I=parseSPIFloat(data);
     //Serial.println(parseSPIFloat(data));
     //Serial.println(parseSPIFloat(data));
@@ -199,12 +201,36 @@ int ElectronicLoad::getI(float * target)
 	return 0;
 }
 
-int ElectronicLoad::getU(float * target)
+int ElectronicLoad::getU1(float * target)
 {
 	static float returnVal;
 
 
-	*target = U;
+	*target = U1;
+
+	return 0;
+}
+
+int ElectronicLoad::getU(float* target, int batteryNo)
+{
+	if (batteryNo == 1)
+	{
+		return getU1(target);
+	}
+	if (batteryNo == 2)
+	{
+		return getU2(target);
+	}
+	return -1;
+
+}
+
+int ElectronicLoad::getU2(float * target)
+{
+	static float returnVal;
+
+
+	*target = U2;
 
 	return 0;
 }

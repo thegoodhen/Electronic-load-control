@@ -36,7 +36,7 @@ void FastTest::updateChart()
 
 		float currentU;
 		float currentI;
-		ElectronicLoad::getU(&currentU);
+		ElectronicLoad::getU(&currentU, batteryNo);
 		ElectronicLoad::getI(&currentI);
 		lastMeasuredU = currentU;
 		lastMeasuredI = currentI;
@@ -255,8 +255,8 @@ void FastTest::loadSettingsFromSpiffs()
 
 
 
-		char fname[50];
-		sprintf(fname, "%s.cfg", prefix);
+	char fname[50];
+	sprintf(fname, "%s.cfg", prefix);
 	Serial.println(fname);
 
 	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
@@ -288,6 +288,7 @@ String FastTest::getId()
 	return (String)"ft_b" + batteryNo;
 }
 
+/*
 void FastTest::startTestCallback(int user)
 {
 	USE_SERIAL.println("starting test, weeeeeee");
@@ -301,6 +302,26 @@ void FastTest::startTestCallback(int user)
 	long outArr[10];
 	int n = parserUtils::retrieveNLongs("10:20:30:40:15", 10, outArr);
 	beginTest(false);
+
+}
+*/
+
+
+void FastTest::startTestCallback(int user)
+{
+	USE_SERIAL.println("starting test, weeeeeee");
+	GUI* gui = cont->getGUI();
+
+	if (this->state == STATE_RUNNING)
+	{
+		Serial.println("stopping");
+		processRequestToStopTest(user);
+	}
+	else
+	{
+		Serial.println("beginning");
+		beginTest(false);
+	}
 
 }
 

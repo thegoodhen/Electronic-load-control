@@ -49,7 +49,8 @@ void DischargeTest::handle()
 	{
 		if (phase == PHASE_PREPARATION)
 		{
-			//TODO: handle errors
+			Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLast");
+			ch->clear();
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
 			failOnError(ElectronicLoad::setUpdatePeriod(10));
 			failOnError(ElectronicLoad::setI(20));//TODO: pick from two
@@ -65,7 +66,7 @@ void DischargeTest::handle()
 			if (ElectronicLoad::areNewReadingsReady())
 			{
 				ElectronicLoad::getI(&currentI);
-				ElectronicLoad::getU(&currentU);
+				ElectronicLoad::getU(&currentU, batteryNo);
 				//current in amps times the number of seconds = capacity in ampseconds
 				batteryCapacity += currentI * updatePeriod;//TODO: make sure the updatePeriod is correct even when the device is under heavy load
 				extractedEnergy += updatePeriod * (currentI*currentU);
@@ -161,6 +162,8 @@ void DischargeTest::generateGUI(Container * c)
 
 
 	Chart* ch = new Chart(getId()+"chLast", "Last test results",true);
+	ch->setPersistency(true);
+
 	vb->add(ch);
 
 	
@@ -179,14 +182,26 @@ String DischargeTest::getId()
 }
 
 
+
+
 void DischargeTest::startTestCallback(int user)
 {
 	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 
-	beginTest(false);
+	if (this->state == STATE_RUNNING)
+	{
+		Serial.println("stopping");
+		processRequestToStopTest(user);
+	}
+	else
+	{
+		Serial.println("beginning");
+		beginTest(false);
+	}
 
 }
+
 
 void DischargeTest::saveSettingsCallback(int user)
 {
