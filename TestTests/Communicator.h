@@ -38,8 +38,10 @@ public:
 	int sendHeader(String subject);
 	int exit();
 	byte emailResp();
+	void sendTestEmail();
 	void generateGUI(Container * c);
 	void saveSettingsCallback(int user);
+	void saveSettings(String smtpServer, String thePort, String sourceAddr, String sourcePass, String targetAddr);
 	void saveSettingsToSpiffs();
 	void loadSettingsFromSpiffs();
 };

@@ -13,8 +13,9 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"} };
  TestScheduler* SerialManager::ts;
+ Communicator * SerialManager::comm;
 
 
 
@@ -50,6 +51,19 @@ void SerialManager::startTest(char** params, int argCount)
   bt->beginTest(false);
   //Serial.println("GEKITY GEK");
   //Serial.println(argCount);
+}
+
+void SerialManager::stopTest(char** params, int argCount)
+{
+	BatteryTest* bt = ts->getCurrentTest();
+	if (bt!= NULL)
+	{
+		bt->endTest(3);
+    }
+	else
+	{
+		Serial.println("No test is running, so no test can be stopped.");
+	}
 }
 
 void SerialManager::help(char** params, int argCount)
@@ -182,6 +196,75 @@ void SerialManager::timeSet(char** params, int argCount)
 
 }
 
+void SerialManager::status(char** params, int argCount)
+{
+	Serial.print("time: ");
+	Serial.println(NTPManager::dateToString(now()));
+	
+	if (WiFi.status() == WL_CONNECTED)
+	{
+		Serial.println("WiFi status: connected");
+		Serial.print("AP:");
+		Serial.println(WiFi.SSID());
+		Serial.print("IP: ");
+		Serial.println(WiFi.localIP().toString());
+	}
+	else
+	{
+		Serial.println("WiFi status: disconnected");
+	}
+	Serial.print("Currently running test:");
+	BatteryTest* currentTest = ts->getCurrentTest();
+	if (currentTest == NULL)
+	{
+		Serial.println("None");
+	}
+	else
+	{
+		Serial.println(currentTest->getName());
+	}
+	Serial.println();
+	Serial.println();
+	Serial.println("Last results:");
+	BatteryTest* tb1 = (ts->getLastTest(1));
+	BatteryTest* tb2 = (ts->getLastTest(2));
+	if (tb1 != NULL)
+	{
+		Serial.println(tb1->getTextResults());
+	}
+	else
+	{
+		Serial.println("(no test for battery 1 yet)");
+	}
+	Serial.println();
+	if (tb2 != NULL)
+	{
+		Serial.println(tb2->getTextResults());
+	}
+	else
+	{
+		Serial.println("(no test for battery 2 yet)");
+	}
+	Serial.println();
+
+}
+
+void SerialManager::configureEmail(char** params, int argCount)
+{
+	if (argCount != 5)
+	{
+		Serial.println("Usage: CONFIGUREEMAIL|SMTPSERVER|PORT|SOURCEADDR|SOURCEPASS|TARGETADDR");
+		return;
+	}
+	comm->saveSettings(params[0], params[1], params[2], params[3], params[4]);
+
+}
+
+void SerialManager::testEmail(char** params, int argCount)
+{
+	comm->sendTestEmail();
+}
+
 int SerialManager :: getBatteryNo(char* input)
 {
   float outArg;
@@ -215,9 +298,10 @@ int SerialManager::getTestType(char* theName)
 
 
 
- SerialManager::SerialManager(TestScheduler* _ts)
+ SerialManager::SerialManager(TestScheduler* _ts, Communicator* _comm)
  {
 	ts = _ts;
+	comm = _comm;
  }
 
 

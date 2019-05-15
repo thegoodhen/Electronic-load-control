@@ -14,6 +14,8 @@
 #include <TGH_GUI.h>
 #include "parserUtils.h"
 #include "TestScheduler.h"
+#include "Communicator.h"
+
 #define CMDS_COUNT sizeof(cmds)/sizeof(cmds[0])
 
 class SerialManager
@@ -22,9 +24,9 @@ private:
 	WiFiClient theClient;
 	Container* cont;
 	static TestScheduler* ts;
+	static Communicator* comm;
 public:
-	SerialManager();
-	SerialManager(TestScheduler* ts);
+	SerialManager(TestScheduler* ts, Communicator* _comm);
 	//Communicator(WiFiClient theClient, String smtpServer, String sourceAddr, String sourcePassword, String targetAddr, int portNumber, unsigned long phoneNumber);
 	void begin();
 	void handleData();
@@ -45,6 +47,7 @@ struct command {
   const char commandString[20];
 };
 static void startTest(char** params, int argCount);
+static void stopTest(char ** params, int argCount);
 static void help(char** params, int argCount);
 
 static void connectWiFi(char ** params, int argCount);
@@ -52,6 +55,12 @@ static void disconnectWiFi(char ** params, int argCount);
 static void lastResult(char ** params, int argCount);
 static void schedule(char ** params, int argCount);
 static void timeSet(char ** params, int argCount);
+
+static void status(char ** params, int argCount);
+
+static void configureEmail(char ** params, int argCount);
+
+static void testEmail(char ** params, int argCount);
 
 static int getBatteryNo(char * input);
 

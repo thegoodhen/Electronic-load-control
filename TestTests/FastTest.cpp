@@ -35,9 +35,12 @@ void FastTest::updateChart()
 	{
 
 		float currentU;
+		float currentI;
 		ElectronicLoad::getU(&currentU);
+		ElectronicLoad::getI(&currentI);
 		lastMeasuredU = currentU;
-		Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");//TODO: optimize
+		lastMeasuredI = currentI;
+		Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");//TODO: optimize
 		double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
 		double arr[] = {currTime,currentU};
 		ch->addPoint(ALL_CLIENTS, arr,2);
@@ -71,7 +74,7 @@ void FastTest::handle()
 		if (phase == PHASE_PREPARATION)
 		{
 			Serial.println("entering the loading phase...");
-			Chart* ch = (Chart*)cont->getGUI()->find("chLastTestData");
+			Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");
 			ch->clear();
 			//TODO: handle errors
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
@@ -96,7 +99,7 @@ void FastTest::handle()
 			if (millis() - startMillis > 20000)//rollover-safe; see https://arduino.stackexchange.com/questions/12587/how-can-i-handle-the-millis-rollover
 			{
 				this->voltageWhenLoaded= this->lastMeasuredU;
-				this->currentWhenLoaded = this->voltageWhenLoaded / 2;//TODO: actually measure the current...
+				this->currentWhenLoaded = this->lastMeasuredI;
 				Serial.println("entering the recovery phase...");
 				failOnError(ElectronicLoad::connectBattery(0));
 				phase = PHASE_RECOVERY;
@@ -116,7 +119,7 @@ void FastTest::handle()
 			{
 				//end of the test
 				this->voltageAtEnd = this->lastMeasuredU;
-				double loadingResistance = 2;//TODO: calculate from the current and stuff...
+				double loadingResistance = voltageWhenLoaded / currentWhenLoaded;
 				this->internalResistance = ((this->voltageAtStart*loadingResistance)/voltageWhenLoaded)-loadingResistance;
 
 				this->testFailed = false;
@@ -189,9 +192,9 @@ void FastTest::generateGUI(Container * c)
 	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
 	vb->add(btnStoreSettings);
 
-	Chart* ch = new Chart("chLastTestData", "Last test results",true);
-	ch->setPersistency(true);
-	vb->add(ch);
+	//Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true);
+	//ch->setPersistency(true);
+	//vb->add(ch);
 
 	Chart* chHist = new Chart(getId()+"chLast", "Historical results",true,"time","OC voltage","Voltage under load","Recovery vtg","Internal resistance");
 	chHist->setPersistency(true);

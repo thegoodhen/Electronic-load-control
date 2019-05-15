@@ -46,6 +46,7 @@ public:
 	char* getTextResults();//get the textual representation of the test results
 	virtual void generateTextResults();
 	boolean schedule(String firstRun, String period, int mailSettings);
+	void endTest(int endMode);
 protected:
 	Communicator* comm;
 	char textResults[250];
@@ -77,7 +78,6 @@ protected:
 
 
 
-	void endTest(int endMode);
 
 	void failOnError(int status);
 

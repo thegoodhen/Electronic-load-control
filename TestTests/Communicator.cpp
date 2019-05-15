@@ -195,6 +195,13 @@ byte Communicator::emailResp()
   return 1;
 }
 
+void Communicator::sendTestEmail()
+{
+	login();
+	sendHeader("TEST EMAIL");//TODO: make sure that this changes when we failed
+	printText("This is just a test email. If you got it, it means your SMTP server settings are correct.");
+	exit();
+}
 
 void Communicator::generateGUI(Container * c)
 {
@@ -258,28 +265,25 @@ void Communicator::saveSettingsCallback(int user)
 	Serial.println("Saving communicator settings");
 
 	String smtpServer = gui->find("tiSMTPServer")->retrieveText(user);
-	smtpServer.toCharArray(config.smtpServer, 50);
-
-	
 	String thePort = gui->find("tiPort")->retrieveText(user);
-	parserUtils::retrieveNLongs(thePort.c_str(), 1, &config.portNumber);//TODO: check for errors
-	
-
 	String sourceAddr = gui->find("tiSourceAddr")->retrieveText(user);
-	sourceAddr.toCharArray(config.sourceAddr, 50);
-
 	String sourcePass = gui->find("tiPass")->retrieveText(user);
-	sourcePass.toCharArray(config.sourcePass, 50);
-
-	
 	String targetAddr = gui->find("tiTargetAddr")->retrieveText(user);
-	targetAddr.toCharArray(config.targetAddr, 50);
+	//String phoneNum = gui->find("tiTargetNum")->retrieveText(user);
 
-	String phoneNum = gui->find("tiTargetNum")->retrieveText(user);
-	phoneNum.toCharArray(config.phoneNumber, 50);
+	//phoneNum.toCharArray(config.phoneNumber, 50);
+	saveSettings(smtpServer, thePort, sourceAddr, sourcePass, targetAddr);
+}
+
+void Communicator::saveSettings(String smtpServer, String thePort, String sourceAddr, String sourcePass, String targetAddr)
+{
+	smtpServer.toCharArray(config.smtpServer, 50);
+	parserUtils::retrieveNLongs(thePort.c_str(), 1, &config.portNumber);//TODO: check for errors
+	sourceAddr.toCharArray(config.sourceAddr, 50);
+	sourcePass.toCharArray(config.sourcePass, 50);
+	targetAddr.toCharArray(config.targetAddr, 50);
 	saveSettingsToSpiffs();
-	
-	
+	sendTestEmail();
 }
 
 void Communicator::saveSettingsToSpiffs()

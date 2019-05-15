@@ -148,8 +148,8 @@ String NTPManager::dateToString(time_t _theDate)
 {
 	char returnString[40];
 	sprintf(returnString, "%d.%d. %d %d:%d:%d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
-	Serial.println("returnString");
-	Serial.println(returnString);
+	//Serial.println("returnString");
+	//Serial.println(returnString);
 	return (String)returnString;
 	
 }
@@ -165,9 +165,10 @@ time_t NTPManager::stringToDate(String dateStr)
 	byte dd = (byte)outArr[0];
 	byte mm = (byte)outArr[1];
 	int yy = (int)outArr[2];
+	yy = CalendarYrToTm(yy);
 	byte hh = (byte)outArr[3];
 	byte minmin= (byte)outArr[4];
-	tmElements_t startDateElems = {0,minmin,hh,0,dd,mm,yy};
+	tmElements_t startDateElems = {0,minmin,hh,1,dd,mm,yy};
 	return makeTime(startDateElems);
 }
 

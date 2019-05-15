@@ -78,14 +78,14 @@ void setup()
 
   SpiffsPersistentSettingsUtils::begin();
 
-  comm = new Communicator(wfc, "smtp.seznam.cz", "dsibrava@seznam.cz", "mr.nobody", "dsibrava@seznam.cz", 25, 0);
+  comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@seznam.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
   ts = new TestScheduler();
 
   //comm->begin();
   ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
-  sm = new SerialManager(ts);
+  sm = new SerialManager(ts, comm);
   /*
   comm->login();
   comm->sendHeader("slepice");

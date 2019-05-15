@@ -28,6 +28,7 @@ public:
 	};
 	static ntpConfig config;
 	static time_t stringToDate(String dateStr);
+	static String dateToString(time_t _theDate);
 
 protected:
 
@@ -54,7 +55,6 @@ protected:
 	
 
 	
-	static String dateToString(time_t _theDate);
 
 
 	//time_t getNtpTime();
