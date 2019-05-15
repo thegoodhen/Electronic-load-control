@@ -177,7 +177,7 @@ void loop()
   //vt->handle();
 
 	gui.loop();//you have to call this function in loop() for this library to work!
-	sd->loop();
+	//sd->loop();
 	sm->loop();
 	ElectronicLoad::heartBeat();
 }

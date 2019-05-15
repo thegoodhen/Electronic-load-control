@@ -192,9 +192,9 @@ void FastTest::generateGUI(Container * c)
 	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
 	vb->add(btnStoreSettings);
 
-	//Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true);
-	//ch->setPersistency(true);
-	//vb->add(ch);
+	Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true);
+	ch->setPersistency(true);
+	vb->add(ch);
 
 	Chart* chHist = new Chart(getId()+"chLast", "Historical results",true,"time","OC voltage","Voltage under load","Recovery vtg","Internal resistance");
 	chHist->setPersistency(true);
@@ -204,12 +204,10 @@ void FastTest::generateGUI(Container * c)
 	auto f1 = std::bind(&FastTest::startTestCallback, this, _1);
 	Button* btnStartFastTest = new Button("btnStartFastTest", "Start test now" , f1);
 	vb->add(btnStartFastTest);
-	generateSchedulingGUI(vb, this->getId());
+	yield();
+	//generateSchedulingGUI(vb, this->getId());
+	yield();
 	loadSettingsFromSpiffs();
-
-
-	
-
 }
 
 void FastTest::saveSettingsToSpiffs()

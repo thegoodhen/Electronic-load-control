@@ -184,6 +184,7 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 
 	
 	
+	/*
 	
 	
 
@@ -199,7 +200,9 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	
 	Button* btnRecallSettings= new Button(_prefix+"_recallSchSettings", "Recall stored settings", NULL);
 	c->add(btnRecallSettings);
+
 	loadSchSettingsFromSpiffs();
+	*/
 
 
 	//the following lines fix everything... how very bizzare indeed!
