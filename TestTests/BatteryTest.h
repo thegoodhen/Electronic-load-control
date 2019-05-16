@@ -47,10 +47,11 @@ public:
 	virtual void generateTextResults();
 	boolean schedule(String firstRun, String period, int mailSettings);
 	void endTest(int endMode);
+	void printResultsToSerial();
 	virtual String setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="");
 protected:
 	Communicator* comm;
-	char textResults[250];
+	char textResults[400];
 	TestScheduler* scheduler=NULL;
 	Container* cont=NULL;
 	boolean canRunAutomatically;//whether the test is scheduled to be run automatically

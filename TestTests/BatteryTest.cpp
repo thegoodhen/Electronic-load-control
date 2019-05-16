@@ -35,7 +35,9 @@ void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
 
 void BatteryTest::beginTest(boolean scheduled)
 {
-	if (this->scheduler->getCurrentTest() != NULL)//some test already running
+	BatteryTest* bt = this->scheduler->getCurrentTest();
+
+	if (bt != NULL)//some test already running
 	{
 		if (!scheduled)
 		{
@@ -124,8 +126,39 @@ void BatteryTest::endTest(int endMode)
 
 
 	Serial.println("TEST FINISHED. RESULTS:");
-	Serial.println(textResults);
+	printResultsToSerial();
 
+	Serial.println((unsigned long)this->scheduler);
+	//Serial.println(textResults);
+
+}
+
+/*
+Print the contents of the textResults variable, removing the html tags
+*/
+void BatteryTest::printResultsToSerial()
+{
+	int len = strlen(textResults);
+	boolean skipPrinting = false;
+	for (int i = 0;i < len;i++)
+	{
+		if (textResults[i] == '<')//beginning of the html tag
+		{
+			skipPrinting = true;
+		}
+
+		if (!skipPrinting)
+		{
+			Serial.print(textResults[i]);
+		}
+
+
+		if (textResults[i] == '>')//ending of the html tag
+		{
+			skipPrinting = false;
+		}
+
+	}
 }
 
 void BatteryTest::failOnError(int status)
@@ -358,9 +391,9 @@ String BatteryTest::dateToString(time_t _theDate)
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>"
-		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>" +
-		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>");
+	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>\n"
+		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\n" +
+		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>\n");
 }
 void BatteryTest::setScheduler(TestScheduler* _sch)
 {

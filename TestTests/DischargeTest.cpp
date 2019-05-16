@@ -2,8 +2,9 @@
 #include <functional>
  using namespace std::placeholders; 
 
- DischargeTest::DischargeTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+ DischargeTest::DischargeTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+    this->batteryNo = _batteryNo;
 	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
@@ -107,30 +108,14 @@ String DischargeTest::getName()
 
 void DischargeTest::generateTextResults()
 {
-
+	sprintf(textResults, "%sBattery capacity: <b>%.2f Ah</b>\n<br>Extracted energy: <b>%.2f Wh</b>\n<br>", getGenericLastTestInfo().c_str(), batteryCapacity, extractedEnergy);
 }
 
-void DischargeTest::reportResultsOnGUI()
+void DischargeTest::reportResultsOnGUI()//TODO: do this
 {
-
 }
 
 
-int DischargeTest::sendEmailReport()
-{
-		comm->login();
-		comm->sendHeader((String)"BATTERY "+batteryNo+(String)" TEST RESULTS");//TODO: make sure that this changes when we failed
-		comm->printText("Battery capacity (discharge) test complete.<br>");
-		comm->printText("Battery capacity: ");
-		comm->printText((String)batteryCapacity+ "  Ah<br>");
-
-		comm->printText("extracted power: ");
-		comm->printText((String)extractedEnergy+ "  Wh<br>");
-		comm->exit();
-		
-		//Serial.println(getTextResults());
-	return 0;
-}
 
 int DischargeTest::getType()
 {

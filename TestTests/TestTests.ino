@@ -51,11 +51,12 @@ time_t getNtpTime();
 void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
-//HovnoTest* HOVNOUS;
 FastTest* ft;
+FastTest* ftb2;
 VoltageTest* vt;
 VoltageTest* vtb2;
 DischargeTest* dt;
+DischargeTest* dtb2;
 Communicator* comm;
 TestScheduler* ts;
 StatusDisplay* sd;
@@ -81,14 +82,16 @@ void setup()
 
   SpiffsPersistentSettingsUtils::begin();
 
-  comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@seznam.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
+  comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@email.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
   ts = new TestScheduler();
 
   //comm->begin();
-  ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ft = new FastTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ftb2 = new FastTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vtb2 = new VoltageTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  dt = new DischargeTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  //dt = new DischargeTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  //dtb2 = new DischargeTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
   sm = new SerialManager(ts, comm);
   /*
@@ -128,9 +131,10 @@ void initGUI()
 	tp->addTab(tab3);//We add the tab to the tabPane
 
 
-	//ft->generateGUI(tab2);
+	ft->generateGUI(tab2);
 	vt->generateGUI(tab2);
-	vtb2->generateGUI(tab2);
+	ftb2->generateGUI(tab2);
+	//vtb2->generateGUI(tab2);
 	//dt->generateGUI(tab2);
 
 	

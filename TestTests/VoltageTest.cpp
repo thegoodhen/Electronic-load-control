@@ -136,7 +136,7 @@ void VoltageTest::generateGUI(Container * c)
 	vb->add(btnStartTest);
 
 	vb->add(btnStartTest);
-	generateSchedulingGUI(vb, this->getId());
+	//generateSchedulingGUI(vb, this->getId());
 
 	loadSettingsFromSpiffs();
 

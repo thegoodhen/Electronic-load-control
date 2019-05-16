@@ -2,8 +2,9 @@
 #include <functional>
 using namespace std::placeholders;
 
-FastTest::FastTest(TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+FastTest::FastTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
+	this->batteryNo = _batteryNo;
 	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
