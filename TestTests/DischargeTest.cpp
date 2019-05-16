@@ -129,34 +129,34 @@ void DischargeTest::generateGUI(Container * c)
 
 	this->cont = c;
 	vBox* vb = new vBox(getId()+"vb");//we create a new vertical box - the things in this box will go one under another
-	c->add(vb);//we add the vertical box inside the horizontal box we created
+	//c->add(vb);//we add the vertical box inside the horizontal box we created
 	
 	
 	
 	Heading* h = new Heading(getId()+"h1", 1, "Discharge test of battery "+(String)batteryNo);//the heading
-	vb->add(h);//Always remember to actually add the elements somewhere!
+	//vb->add(h);//Always remember to actually add the elements somewhere!
 	//Text* t = new Text(getId()+"desc", R"(This test simply measures the no-load voltage of the battery; it only takes a few seconds and can be used to estimate the state of charge.)");//We add some explanation
 	//vb->add(t);
 	
 	TextInput* ti1 = new TextInput(getId() + (String)"failVoltage", "Minimum measured voltage before test fails");
-	vb->add(ti1);
+	//vb->add(ti1);
 
 
 	Text* lastResultsText = new Text(getId()+"lastResults", R"(Last results are something something)");
-	vb->add(lastResultsText);
+	//vb->add(lastResultsText);
 
 
 	Chart* ch = new Chart(getId()+"chLast", "Last test results",true);
-	ch->setPersistency(true);
+	//ch->setPersistency(true);
 
-	vb->add(ch);
+	//vb->add(ch);
 
 	
 	auto f1 = std::bind(&DischargeTest::startTestCallback, this, _1);
 	Button* btnStartTest = new Button(getId()+"bStart", "Start test now" , f1);
-	vb->add(btnStartTest);
+	//vb->add(btnStartTest);
 
-	vb->add(btnStartTest);
+	//vb->add(btnStartTest);
 	generateSchedulingGUI(vb, this->getId());
 
 }

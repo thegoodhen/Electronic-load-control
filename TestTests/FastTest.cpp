@@ -194,42 +194,42 @@ void FastTest::generateGUI(Container * c)
 	
 	this->cont = c;
 	vBox* vb = new vBox(getId()+"vBox");//we create a new vertical box - the things in this box will go one under another
-	c->add(vb);//we add the vertical box inside the horizontal box we created
+	//c->add(vb);//we add the vertical box inside the horizontal box we created
 	
 	
 	
 	//Heading* h = new Heading(getId()+"heading1", 1, "Fast test of battery 1");//We create heading of level "1", name it "heading1" and change its text.
 	//vb->add(h);//Always remember to actually add the elements somewhere!
 	Text* t = new Text(getId()+"text1", R"(This test works by loading the battery for roughly 15 seconds and then letting it recover; it can be used to estimate the state of charge and also the internal resistance of the battery.)");//We add some explanation
-	vb->add(t);
+	//vb->add(t);
 
 
 	//Text* lastResultsText = new Text(getId()+"lastResults", R"(Last results are something something)");
 	//vb->add(lastResultsText);
 
-	//TextInput* tiMaxRiBeforeFail= new TextInput(getId()+"tiMaxRiBeforeFail", "Max Ri before fail");
+	TextInput* tiMaxRiBeforeFail= new TextInput(getId()+"tiMaxRiBeforeFail", "Max Ri before fail");
 	//vb->add(tiMaxRiBeforeFail);
 
-	//auto fStoreSettings = std::bind(&FastTest::saveSettingsCallback, this, _1);
-	//Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
+	auto fStoreSettings = std::bind(&FastTest::saveSettingsCallback, this, _1);
+	Button* btnStoreSettings = new Button(getId()+"btnStoreSettings", "Store settings as default" , fStoreSettings);
 	//vb->add(btnStoreSettings);
 
-	//Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true,"time","voltage");
+	Chart* ch = new Chart(getId()+"chLastTestData", "Last test results",true,"time","voltage");
 	//ch->setPersistency(true);
 	//vb->add(ch);
 
 	Chart* chHist = new Chart(getId()+"chLast", "Historical results",true,"time","OC voltage","Voltage under load","Recovery vtg","Internal resistance");
-	chHist->setPersistency(true);
-	vb->add(chHist);
+	//chHist->setPersistency(true);
+	//vb->add(chHist);
 
 	
 	auto f1 = std::bind(&FastTest::startTestCallback, this, _1);
 	Button* btnStartFastTest = new Button("btnStartFastTest", "Start test now" , f1);
-	vb->add(btnStartFastTest);
-	yield();
+	//vb->add(btnStartFastTest);
+	//yield();
 	//generateSchedulingGUI(vb, this->getId());
-	yield();
-	loadSettingsFromSpiffs();
+	//yield();
+	//loadSettingsFromSpiffs();
 }
 
 void FastTest::saveSettingsToSpiffs()
@@ -279,7 +279,7 @@ void FastTest::loadSettingsFromSpiffs()
 
 
 	GUI* gui = this->cont->getGUI();
-	gui->find(getId()+"tiMaxRiBeforeFail")->setDefaultText((String)maxRiBeforeFail);
+	//gui->find(getId()+"tiMaxRiBeforeFail")->setDefaultText((String)maxRiBeforeFail);
 }
 
 
