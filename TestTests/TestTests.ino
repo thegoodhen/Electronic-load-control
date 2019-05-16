@@ -27,8 +27,8 @@
 GUI gui;
 
 
-const char ssid[] = "TGH_network";  //  your network SSID (name)
-const char pass[] = "r0ut3rp@$$";       // your network password
+const char ssid[] = "iPhone";  //  your network SSID (name)
+const char pass[] = "kokodak1";       // your network password
 
 // NTP Servers:
 static const char ntpServerName[] = "us.pool.ntp.org";
@@ -78,7 +78,7 @@ void setup()
 
   SpiffsPersistentSettingsUtils::begin();
 
-  comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@seznam.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
+  comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@email.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
   ts = new TestScheduler();
 
   //comm->begin();
