@@ -143,7 +143,7 @@ void initGUI()
 
 
 	comm->generateGUI(tab3);
-	ntpm->generateGUI(tab3);
+	//ntpm->generateGUI(tab3);
 	sd->generateGUI(tab1);
 	
 
