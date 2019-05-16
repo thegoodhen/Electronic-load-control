@@ -207,7 +207,7 @@ void VoltageTest::loadSettingsFromSpiffs()
 
 
 		char fname[50];
-		sprintf(fname, "%s.cfg", prefix);
+		sprintf(fname, "%s.cfg", getId().c_str());
 	Serial.println(fname);
 
 	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);

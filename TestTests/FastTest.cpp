@@ -176,7 +176,7 @@ void FastTest::reportResultsOnGUI()
 	//Serial.println(getTextResults());
 
 	//t->setText(ALL_CLIENTS, getTextResults());
-    t->setText(ALL_CLIENTS, (String)""+getTextResults());
+    //t->setText(ALL_CLIENTS, (String)""+getTextResults());
 
 }
 
@@ -193,14 +193,14 @@ void FastTest::generateGUI(Container * c)
 
 	
 	this->cont = c;
-	vBox* vb = new vBox("vBox");//we create a new vertical box - the things in this box will go one under another
+	vBox* vb = new vBox(getId()+"vBox");//we create a new vertical box - the things in this box will go one under another
 	c->add(vb);//we add the vertical box inside the horizontal box we created
 	
 	
 	
-	Heading* h = new Heading("heading1", 1, "Fast test of battery 1");//We create heading of level "1", name it "heading1" and change its text.
+	Heading* h = new Heading(getId()+"heading1", 1, "Fast test of battery 1");//We create heading of level "1", name it "heading1" and change its text.
 	vb->add(h);//Always remember to actually add the elements somewhere!
-	Text* t = new Text("text1", R"(This test works by loading the battery for roughly 15 seconds and then letting it recover; it can be used to estimate the state of charge and also the internal resistance of the battery.)");//We add some explanation
+	Text* t = new Text(getId()+"text1", R"(This test works by loading the battery for roughly 15 seconds and then letting it recover; it can be used to estimate the state of charge and also the internal resistance of the battery.)");//We add some explanation
 	vb->add(t);
 
 
@@ -263,7 +263,7 @@ void FastTest::loadSettingsFromSpiffs()
 
 
 	char fname[50];
-	sprintf(fname, "%s.cfg", prefix);
+	sprintf(fname, "%s.cfg", getId().c_str());
 	Serial.println(fname);
 
 	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);

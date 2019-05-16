@@ -54,7 +54,7 @@ void sendNTPpacket(IPAddress &address);
 FastTest* ft;
 VoltageTest* vt;
 DischargeTest* dt;
-//FastTest* ftb2;
+FastTest* ftb2;
 //VoltageTest* vtb2;
 //DischargeTest* dtb2;
 Communicator* comm;
@@ -89,7 +89,7 @@ void setup()
   ft = new FastTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   dt = new DischargeTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  //ftb2 = new FastTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ftb2 = new FastTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   //vtb2 = new VoltageTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   //dtb2 = new DischargeTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
@@ -134,7 +134,7 @@ void initGUI()
 	ft->generateGUI(tab2);
 	vt->generateGUI(tab2);
 	dt->generateGUI(tab2);
-	//ftb2->generateGUI(tab2);
+	ftb2->generateGUI(tab2);
 	//vtb2->generateGUI(tab2);
 
 	
