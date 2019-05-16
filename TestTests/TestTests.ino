@@ -76,9 +76,14 @@ void setup()
 
   WiFi.begin(ssid, pass);
 
+  unsigned long startMillis = millis();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+	if (millis() - startMillis > 5000)
+	{
+		break;
+	}
   }
 
   SpiffsPersistentSettingsUtils::begin();
@@ -136,14 +141,16 @@ void initGUI()
 	ftb2->generateGUI(tab2);
 	vtb2->generateGUI(tab2);
 	//dtb2->generateGUI(tab2);
+	//ntpm->generateGUI(tab3);
 
 	
 
+	Serial.println("koko");
+	delay(500);
 
 
 
 	comm->generateGUI(tab3);
-	ntpm->generateGUI(tab3);
 	Tab* tab1 = new Tab("Overview");//We create the first tab
 	tp->addTab(tab1);//We add the tab to the tabPane
 
