@@ -169,8 +169,14 @@ void FastTest::reportResultsOnGUI()
 	Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");
 	ch->addPoint(ALL_CLIENTS, arr, 5);
 	Text* t = (Text*)cont->getGUI()->find(this->getId() + "lastResults");
+	delay(500);
 	t->setDefaultText(this->getTextResults());
-	t->setText(ALL_CLIENTS, getTextResults());
+	//Serial.println("getTextResults()");
+	//Serial.println(strlen(getTextResults()));
+	//Serial.println(getTextResults());
+
+	//t->setText(ALL_CLIENTS, getTextResults());
+    t->setText(ALL_CLIENTS, (String)""+getTextResults());
 
 }
 

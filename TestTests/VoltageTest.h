@@ -21,7 +21,7 @@ public:
 	String getName() override;
 	void saveSettingsToSpiffs();
 	void loadSettingsFromSpiffs();
-	String getId();
+	String getId() override;
 private:
 	//Communicator* comm;
 	Container* cont;

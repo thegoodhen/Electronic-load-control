@@ -19,13 +19,13 @@ public:
 	void generateTextResults() override;
 	void reportResultsOnGUI() override;
 	void generateGUI(Container* c) override;
-	String getId();
+	String getId() override;
 private:
 	//Communicator* comm;
 	Container* cont;
 	float voltageSum;
 	float averageVoltage;
-	int sendEmailReport() override;
+	//int sendEmailReport() override;
 	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
