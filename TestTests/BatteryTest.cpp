@@ -190,21 +190,19 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	this->cont = c;
 
 	Heading* hSchedulingProps = new Heading(_prefix+"hSch", 2, "Scheduling settings");
-	c->add(hSchedulingProps);
+	//c->add(hSchedulingProps);
 
 	TextInput* tiFirstRun = new TextInput(_prefix+"tifr", "the time and date of the first scheduled run (DD.MM.YYYY HH:MM)");
-	c->add(tiFirstRun);
+	//c->add(tiFirstRun);
 
 
 	TextInput* tiPeriod= new TextInput(_prefix+"tiP", "the period between two consecutive scheduled runs (DD:HH:MM)");
-	c->add(tiPeriod);
+	//c->add(tiPeriod);
 
 	Checkbox* cbIncludeResult= new Checkbox(_prefix+"cbir", "Store historical test results");
-	c->add(cbIncludeResult);
+	//c->add(cbIncludeResult);
 
 
-	//Slider* s = new Slider("sl1", "Some slider: ");
-	//vb->add(s);
 
 	
 	ListBox* lbMailSettings = new ListBox(_prefix+"lbMail", "email settings");
@@ -213,7 +211,7 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	lbMailSettings->addItem(new ListItem("Only notify on fail"));
 	lbMailSettings->addItem(new ListItem("Notify when finished"));
 	lbMailSettings->addItem(new ListItem("Notify about start and finish"));
-	c->add(lbMailSettings);
+	//c->add(lbMailSettings);
 
 	
 	

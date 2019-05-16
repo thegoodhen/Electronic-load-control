@@ -73,6 +73,7 @@ void setup()
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -100,9 +101,9 @@ void setup()
   comm->printText("<h1>kokodak</h1>");
   comm->exit();
   */
-  StaticJsonBuffer<1000> jb;
-  JsonObject& obj = jb.createObject();
-  obj["slepice"] = 3;
+  //StaticJsonBuffer<1000> jb;
+  //JsonObject& obj = jb.createObject();
+  //obj["slepice"] = 3;
 
   //SpiffsPersistentSettingsUtils::saveSettings(obj, "slepice.txt");
   //JsonObject& obj2 = SpiffsPersistentSettingsUtils::loadSettings("slepice.txt");
