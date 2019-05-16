@@ -35,7 +35,9 @@ void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
 
 void BatteryTest::beginTest(boolean scheduled)
 {
-	if (this->scheduler->getCurrentTest() != NULL)//some test already running
+	BatteryTest* bt = this->scheduler->getCurrentTest();
+
+	if (bt != NULL)//some test already running
 	{
 		if (!scheduled)
 		{
@@ -124,8 +126,39 @@ void BatteryTest::endTest(int endMode)
 
 
 	Serial.println("TEST FINISHED. RESULTS:");
-	Serial.println(textResults);
+	printResultsToSerial();
 
+	Serial.println((unsigned long)this->scheduler);
+	//Serial.println(textResults);
+
+}
+
+/*
+Print the contents of the textResults variable, removing the html tags
+*/
+void BatteryTest::printResultsToSerial()
+{
+	int len = strlen(textResults);
+	boolean skipPrinting = false;
+	for (int i = 0;i < len;i++)
+	{
+		if (textResults[i] == '<')//beginning of the html tag
+		{
+			skipPrinting = true;
+		}
+
+		if (!skipPrinting)
+		{
+			Serial.print(textResults[i]);
+		}
+
+
+		if (textResults[i] == '>')//ending of the html tag
+		{
+			skipPrinting = false;
+		}
+
+	}
 }
 
 void BatteryTest::failOnError(int status)
@@ -157,21 +190,19 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	this->cont = c;
 
 	Heading* hSchedulingProps = new Heading(_prefix+"hSch", 2, "Scheduling settings");
-	c->add(hSchedulingProps);
+	//c->add(hSchedulingProps);
 
 	TextInput* tiFirstRun = new TextInput(_prefix+"tifr", "the time and date of the first scheduled run (DD.MM.YYYY HH:MM)");
-	c->add(tiFirstRun);
+	//c->add(tiFirstRun);
 
 
 	TextInput* tiPeriod= new TextInput(_prefix+"tiP", "the period between two consecutive scheduled runs (DD:HH:MM)");
-	c->add(tiPeriod);
+	//c->add(tiPeriod);
 
 	Checkbox* cbIncludeResult= new Checkbox(_prefix+"cbir", "Store historical test results");
-	c->add(cbIncludeResult);
+	//c->add(cbIncludeResult);
 
 
-	//Slider* s = new Slider("sl1", "Some slider: ");
-	//vb->add(s);
 
 	
 	ListBox* lbMailSettings = new ListBox(_prefix+"lbMail", "email settings");
@@ -180,7 +211,7 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	lbMailSettings->addItem(new ListItem("Only notify on fail"));
 	lbMailSettings->addItem(new ListItem("Notify when finished"));
 	lbMailSettings->addItem(new ListItem("Notify about start and finish"));
-	c->add(lbMailSettings);
+	//c->add(lbMailSettings);
 
 	
 	
@@ -251,6 +282,11 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 		return true; 
 	}
 
+	String BatteryTest::setOptions(String opt1, String opt2, String opt3, String opt4, String opt5)
+	{
+		return "";
+
+	}
 	
 void BatteryTest::saveSchSettingsToSpiffs()
 {
@@ -353,9 +389,9 @@ String BatteryTest::dateToString(time_t _theDate)
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>"
-		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>" +
-		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>");
+	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>\n"
+		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\n" +
+		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>\n");
 }
 void BatteryTest::setScheduler(TestScheduler* _sch)
 {

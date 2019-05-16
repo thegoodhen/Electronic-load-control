@@ -18,6 +18,7 @@
 //#include "HovnoTest.h"
 #include "FastTest.h"
 #include "VoltageTest.h"
+#include "DischargeTest.h"
 #include <WiFiClient.h>
 #include <TGH_GUI.h>
 #include "NTPManager.h"
@@ -50,9 +51,12 @@ time_t getNtpTime();
 void digitalClockDisplay();
 void printDigits(int digits);
 void sendNTPpacket(IPAddress &address);
-//HovnoTest* HOVNOUS;
 FastTest* ft;
 VoltageTest* vt;
+DischargeTest* dt;
+FastTest* ftb2;
+VoltageTest* vtb2;
+DischargeTest* dtb2;
 Communicator* comm;
 TestScheduler* ts;
 StatusDisplay* sd;
@@ -69,6 +73,7 @@ void setup()
   Serial.println("TimeNTP Example");
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -82,8 +87,12 @@ void setup()
   ts = new TestScheduler();
 
   //comm->begin();
-  ft = new FastTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  vt = new VoltageTest(ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ft = new FastTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  dt = new DischargeTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  ftb2 = new FastTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vtb2 = new VoltageTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  dtb2 = new DischargeTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
   sm = new SerialManager(ts, comm);
   /*
@@ -92,9 +101,9 @@ void setup()
   comm->printText("<h1>kokodak</h1>");
   comm->exit();
   */
-  StaticJsonBuffer<1000> jb;
-  JsonObject& obj = jb.createObject();
-  obj["slepice"] = 3;
+  //StaticJsonBuffer<1000> jb;
+  //JsonObject& obj = jb.createObject();
+  //obj["slepice"] = 3;
 
   //SpiffsPersistentSettingsUtils::saveSettings(obj, "slepice.txt");
   //JsonObject& obj2 = SpiffsPersistentSettingsUtils::loadSettings("slepice.txt");
@@ -113,8 +122,6 @@ void initGUI()
 	
 	TabbedPane* tp = new TabbedPane("tp1");//We first need to create a tabbed pane in order to add tabs!
 	gui.add(tp);//We need to attach it to the GUI
-	Tab* tab1 = new Tab("Overview");//We create the first tab
-	tp->addTab(tab1);//We add the tab to the tabPane
 
 	Tab* tab2 = new Tab("Tests");
 	tp->addTab(tab2);//We add the tab to the tabPane
@@ -125,6 +132,10 @@ void initGUI()
 
 	ft->generateGUI(tab2);
 	vt->generateGUI(tab2);
+	dt->generateGUI(tab2);
+	ftb2->generateGUI(tab2);
+	vtb2->generateGUI(tab2);
+	//dtb2->generateGUI(tab2);
 
 	
 
@@ -133,7 +144,10 @@ void initGUI()
 
 	comm->generateGUI(tab3);
 	ntpm->generateGUI(tab3);
-	sd->generateGUI(tab1);
+	Tab* tab1 = new Tab("Overview");//We create the first tab
+	tp->addTab(tab1);//We add the tab to the tabPane
+
+	//sd->generateGUI(tab1);
 	
 
 	//hBox* hb = new hBox("hb");

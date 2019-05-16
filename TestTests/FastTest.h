@@ -15,10 +15,11 @@ class FastTest:public BatteryTest
 public:
 	//FastTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void start(boolean scheduled, float loadCurrent);
-	FastTest(TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
+	FastTest(int _batteryNo, TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void updateChart();
 	String getName() override;
 	void handle() override;
+	String setOptions(String opt1, String opt2, String opt3, String opt4, String opt5) override;
 	void reportResultsOnGUI() override;
 	void loadSettingsFromSpiffs();
 	void generateTextResults() override;

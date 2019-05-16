@@ -213,21 +213,21 @@ void Communicator::generateGUI(Container * c)
 
 	
 	Heading* h = new Heading("hCommSettings", 1, "Communication settings");//We create heading of level "1", name it "heading1" and change its text.
-	vb->add(h);//Always remember to actually add the elements somewhere!
+	//vb->add(h);//Always remember to actually add the elements somewhere!
 	Text* t = new Text("commDescText", R"(In this section you can access the various settings related to the email and SMS settings)");//We add some explanation
-	vb->add(t);
+	//vb->add(t);
 
 
 	
 
 	TextInput* tiSMTPServer = new TextInput("tiSMTPServer", "SMTP server address");
-	vb->add(tiSMTPServer);
+	//vb->add(tiSMTPServer);
 
 	
 
 	TextInput* tiPort = new TextInput("tiPort", "The port");
 	//TextInput* tiPort = new TextInput("tiPort", "The port used to communicate with the SMTP server (typically 25)");
-	vb->add(tiPort);
+	//vb->add(tiPort);
 
 
 	
@@ -235,7 +235,7 @@ void Communicator::generateGUI(Container * c)
 	vb->add(tiSourceAddr);
 
 	TextInput* tiPass = new TextInput("tiPass", "The password connected with the given email address");
-	vb->add(tiPass);
+	//vb->add(tiPass);
 
 	TextInput* tiTargetAddr = new TextInput("tiTargetAddr", "The email address to send the emails to");
 	vb->add(tiTargetAddr);
