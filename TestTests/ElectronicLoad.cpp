@@ -1,4 +1,5 @@
 #include "ElectronicLoad.h"
+#include "TimeLib.h"
 int ElectronicLoad::connectedBattery = -1;
 boolean ElectronicLoad::isResultFresh = false;
 unsigned long ElectronicLoad::lastQueryTimestamp =0;
@@ -27,6 +28,19 @@ float ElectronicLoad::parseSPIFloat(uint8_t* data)
   return *((float*)(floatBytes));
 }
 
+unsigned long ElectronicLoad::parseSPIUL(uint8_t* data)
+{
+  int startIndex = spiInIndex;
+  byte ULBytes[4];
+  for (int i = 0; i < 4; i++)
+  {
+    ULBytes[i] = data[startIndex + i];
+  }
+  spiInIndex += 4;
+  return *((unsigned long *)(ULBytes));
+}
+
+
 byte ElectronicLoad::parseSPIByte(uint8_t* data)
 {
   return data[spiInIndex++];
@@ -45,6 +59,19 @@ void ElectronicLoad::queueFloat(float f)
   }
 }
 
+
+/**
+      Schedule an unsigned long to be sent over SPI
+*/
+void ElectronicLoad::queueUL(unsigned long f)
+{
+  byte *b = (byte *)&f;
+
+  for (int i = 0; i < 4; i++)
+  {
+    spiDataOut[spiOutIndex++] = b[i];
+  }
+}
 
 
 /**
@@ -109,12 +136,13 @@ void ElectronicLoad::onData(uint8_t* data, size_t len)
     U1=parseSPIFloat(data);
     U2=parseSPIFloat(data);
     I=parseSPIFloat(data);
+    ::setTime(parseSPIUL(data));
     //Serial.println(parseSPIFloat(data));
     //Serial.println(parseSPIFloat(data));
-    Serial.println("chksum ok?");
+    //Serial.println("chksum ok?");
     //delay(1);//just as a test(FAILED, damnit...)
 
-    Serial.println(isChksumOk(data));
+    //Serial.println(isChksumOk(data));
 	
 }
 
@@ -165,6 +193,15 @@ int ElectronicLoad::connectBattery(int batteryNo)
 }
 
 
+int ElectronicLoad::requestTime()
+{
+  queueByte(4);//request time
+  sendData(spiDataOut, spiOutIndex);
+  Serial.println("Requesting time...");
+  return 0;
+}
+
+
 uint8_t ElectronicLoad::calcCheckSum(uint8_t* data)
 {
   uint8_t chksum = 0;
@@ -184,6 +221,13 @@ int ElectronicLoad::setI(float theI)
 {
     queueByte(1);//set current
     queueFloat(theI);
+    return sendData(spiDataOut, spiOutIndex);
+}
+
+int ElectronicLoad::setTime(time_t theTime)
+{
+    queueByte(3);//set time
+    queueUL(theTime);
     return sendData(spiDataOut, spiOutIndex);
 }
 
@@ -256,6 +300,10 @@ void ElectronicLoad::heartBeat()
 	static boolean currentHBState = false;
 	if (millis() - lastMillis > 1000)
 	{
+		if (now() < 10000)
+		{
+			requestTime();
+		}
 		currentHBState = !currentHBState;
 		pinMode(D1, OUTPUT);
 		digitalWrite(D1, currentHBState);

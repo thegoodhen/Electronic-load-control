@@ -1,4 +1,5 @@
 #include "VoltageTest.h"
+#include "NTPManager.h"
 #include <functional>
  using namespace std::placeholders; 
 
@@ -30,6 +31,7 @@
 
  void VoltageTest::reportResultsOnGUI()
  {
+	 /*
 	 double arr[] = { now(),averageVoltage };
 	 Chart* ch = (Chart*)cont->getGUI()->find(this->getId() + "chLast");//TODO: optimize
 	 ch->addPoint(ALL_CLIENTS, arr, 2);
@@ -37,6 +39,7 @@
 	 Text* t = (Text*)cont->getGUI()->find(this->getId() + "lastResults");
 	 t->setDefaultText(this->getTextResults());
 	 t->setText(ALL_CLIENTS, getTextResults());
+	 */
  }
 
 void VoltageTest::handle()
@@ -233,6 +236,17 @@ String VoltageTest::getId()
 }
 
 
+
+void VoltageTest::saveResults()
+{
+	char theLine[200];
+	sprintf(theLine, "%s\t%.3f", NTPManager::dateToString(now()).c_str(),averageVoltage);
+
+	char fname[50];
+    sprintf(fname, "%s.data", getId().c_str());
+	SpiffsPersistentSettingsUtils::appendLineTo(fname, theLine);
+}
+
 void VoltageTest::startTestCallback(int user)
 {
 	USE_SERIAL.println("starting test, weeeeeee");
@@ -251,3 +265,9 @@ void VoltageTest::startTestCallback(int user)
 
 }
 
+String VoltageTest::getSettings()
+{
+	char returnStr[200];
+	sprintf(returnStr,"Minimum open-circuit voltage before failure: %.2fV", failVoltageThreshold);
+	return String(returnStr);
+}

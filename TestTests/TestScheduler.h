@@ -15,6 +15,7 @@ private:
 	BatteryTest* currentTest = 0;
 	BatteryTest* lastTestBat1 = 0;
 	BatteryTest* lastTestBat2 = 0;
+	int status = 0;//0 = OK, 1 = FAIL
 public:
 	void addTest(BatteryTest* bt);
 	BatteryTest* getCurrentTest();
@@ -25,4 +26,6 @@ public:
 
 	BatteryTest* getLastTest(int batteryNo);
 	void notifyAboutTestStart(BatteryTest * _bt);
+	void resetStatus();
+	int getStatus();
 };

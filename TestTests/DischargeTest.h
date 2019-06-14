@@ -18,6 +18,7 @@ public:
 	String getName() override;
 	void generateTextResults() override;
 	void reportResultsOnGUI() override;
+	void saveResults() override;
 	void generateGUI(Container* c) override;
 	String getId() override;
 private:
@@ -29,8 +30,12 @@ private:
 	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
+	void saveSettingsToSpiffs();
+	String setOptions(String opt1, String opt2, String opt3, String opt4, String opt5) override;
+	void loadSettingsFromSpiffs();
+	String getSettings() override;
 	const int MEASURMENTS_COUNT = 10;
-	float testEndVoltage = 10;
+	float testEndVoltage = 22;
 
 	float minCapacity =		30;
 	float extractedEnergy = 0;

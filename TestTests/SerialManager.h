@@ -54,15 +54,18 @@ static void connectWiFi(char ** params, int argCount);
 static void disconnectWiFi(char ** params, int argCount);
 static void lastResult(char ** params, int argCount);
 static void schedule(char ** params, int argCount);
+static void history(char ** params, int argCount);
 static void timeSet(char ** params, int argCount);
 
 static void status(char ** params, int argCount);
+static void resetStatus(char ** params, int argCount);
 
 static void configureEmail(char ** params, int argCount);
 
 static void testEmail(char ** params, int argCount);
 
 static void setOptions(char ** params, int argCount);
+static void getOptions(char ** params, int argCount);
 
 static int getBatteryNo(char * input);
 

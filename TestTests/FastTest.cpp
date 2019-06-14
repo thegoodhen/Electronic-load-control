@@ -1,5 +1,6 @@
 #include "FastTest.h"
 #include <functional>
+#include "NTPManager.h"
 using namespace std::placeholders;
 
 FastTest::FastTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
@@ -41,10 +42,10 @@ void FastTest::updateChart()
 		ElectronicLoad::getI(&currentI);
 		lastMeasuredU = currentU;
 		lastMeasuredI = currentI;
-		Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");//TODO: optimize
+		//Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");//TODO: optimize
 		double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
 		double arr[] = {currTime,currentU};
-		ch->addPoint(ALL_CLIENTS, arr,2);
+		//ch->addPoint(ALL_CLIENTS, arr,2);
 	}
 }
 
@@ -75,8 +76,8 @@ void FastTest::handle()
 		if (phase == PHASE_PREPARATION)
 		{
 			Serial.println("entering the loading phase...");
-			Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");
-			ch->clear();
+			//Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");
+			//ch->clear();
 			//TODO: handle errors
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
 			failOnError(ElectronicLoad::setUpdatePeriod(0.25));
@@ -146,20 +147,6 @@ void FastTest::handle()
 	
 }
 
-	String FastTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
-	{
-		if (opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
-		{
-			return (String)"Usage: SETOPTIONS|FAST|" + batteryNo + "|(maximum Ri before test fails)";
-		}
-		if (parserUtils::retrieveFloat(opt1.c_str(), &maxRiBeforeFail)<0)
-		{
-			return "Not a valid value for internal resistance.";
-		}
-		saveSettingsToSpiffs();
-		return "";
-
-	}
 
 void FastTest::reportResultsOnGUI()
 {
@@ -284,6 +271,33 @@ void FastTest::loadSettingsFromSpiffs()
 
 
 
+void FastTest::saveResults()
+{
+	char theLine[200];
+	sprintf(theLine, "%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f", NTPManager::dateToString(now()).c_str(),internalResistance, voltageAtStart, voltageWhenLoaded, voltageAtEnd, currentWhenLoaded);
+
+	char fname[50];
+    sprintf(fname, "%s.data", getId().c_str());
+	SpiffsPersistentSettingsUtils::appendLineTo(fname, theLine);
+}
+
+
+	String FastTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
+	{
+		if (opt1=="" || opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
+		{
+			return (String)"Usage: SETOPTIONS|FAST|" + batteryNo + "|(minimum internal resistance before the test fails)";
+		}
+		if (parserUtils::retrieveFloat(opt1.c_str(), &maxRiBeforeFail)<0)
+		{
+			return "Not a valid value for minimum internal resistance.";
+		}
+		saveSettingsToSpiffs();
+		return "";
+
+	}
+
+
 void FastTest::generateTextResults()
 {
 
@@ -337,4 +351,11 @@ void FastTest::saveSettingsCallback(int user)
 	GUI* gui = cont->getGUI();
 	String s = gui->find(getId()+"tiMaxRiBeforeFail")->retrieveText(user);
 	setOptions(s);
+}
+
+String FastTest::getSettings()
+{
+	char returnStr[200];
+	sprintf(returnStr,"Minimum internal resistance before failure: %.2fOh", maxRiBeforeFail);
+	return String(returnStr);
 }

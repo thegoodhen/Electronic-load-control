@@ -125,34 +125,29 @@ void initGUI()
 	gui.begin();//this is a necessary call! You need to call this in setup() to properly initialize the GUI!!
 
 	
-	TabbedPane* tp = new TabbedPane("tp1");//We first need to create a tabbed pane in order to add tabs!
-	gui.add(tp);//We need to attach it to the GUI
+	//TabbedPane* tp = new TabbedPane("tp1");//We first need to create a tabbed pane in order to add tabs!
+	//gui.add(tp);//We need to attach it to the GUI
 
-	Tab* tab2 = new Tab("Tests");
-	tp->addTab(tab2);//We add the tab to the tabPane
+	//Tab* tab2 = new Tab("Tests");
+	//tp->addTab(tab2);//We add the tab to the tabPane
 
-	Tab* tab3 = new Tab("Settings");
-	tp->addTab(tab3);//We add the tab to the tabPane
+	////Tab* tab3 = new Tab("Settings");
+	//tp->addTab(tab3);//We add the tab to the tabPane
 
 
-	ft->generateGUI(tab2);
-	vt->generateGUI(tab2);
-	dt->generateGUI(tab2);
-	ftb2->generateGUI(tab2);
-	vtb2->generateGUI(tab2);
 	//dtb2->generateGUI(tab2);
 	//ntpm->generateGUI(tab3);
 
 	
 
-	Serial.println("koko");
-	delay(500);
+	//Serial.println("koko");
+	//delay(500);
 
 
 
-	comm->generateGUI(tab3);
-	Tab* tab1 = new Tab("Overview");//We create the first tab
-	tp->addTab(tab1);//We add the tab to the tabPane
+	//comm->generateGUI(tab3);
+	//Tab* tab1 = new Tab("Overview");//We create the first tab
+	//tp->addTab(tab1);//We add the tab to the tabPane
 
 	//sd->generateGUI(tab1);
 	

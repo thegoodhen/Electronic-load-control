@@ -38,9 +38,12 @@ public:
 	void setScheduler(TestScheduler * _sch);
 	time_t getScheduledStartTime();
 	void processRequestToStopTest(int userNo);
+	virtual String getSettings();
 	void beginTest(boolean scheduled);
+	void printHistoricalResults();
 	virtual void handle();
 	virtual int getType();
+	virtual void saveResults();
 	void fastForwardScheduling();
 	int getBatteryNo();
 	char* getTextResults();//get the textual representation of the test results

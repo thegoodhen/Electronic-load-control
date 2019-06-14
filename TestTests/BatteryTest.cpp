@@ -36,6 +36,10 @@ void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
 void BatteryTest::beginTest(boolean scheduled)
 {
 	BatteryTest* bt = this->scheduler->getCurrentTest();
+	if (this->scheduler->getStatus() != 0)//testing not permitted
+	{
+		return;
+	}
 
 	if (bt != NULL)//some test already running
 	{
@@ -67,6 +71,17 @@ void BatteryTest::beginTest(boolean scheduled)
 		
 		fastForwardScheduling();
 
+	}
+}
+
+void BatteryTest::printHistoricalResults()
+{
+	char fname[50];
+    sprintf(fname, "%s.data", getId().c_str());
+	File f = SPIFFS.open(fname, "r");
+	while (f.available())
+	{
+		Serial.write(f.read());
 	}
 }
 
@@ -108,7 +123,8 @@ void BatteryTest::endTest(int endMode)
 	if (endMode == 0 || endMode == 1)
 	{
 		generateTextResults();
-		reportResultsOnGUI();
+		saveResults();
+		//reportResultsOnGUI();
 		if ((emailReport == REPORT_MAIL_ONFAIL && testFailed) || emailReport == REPORT_MAIL_ONFINISHED)
 		{
 			sendEmailReport();
@@ -132,6 +148,7 @@ void BatteryTest::endTest(int endMode)
 	//Serial.println(textResults);
 
 }
+
 
 /*
 Print the contents of the textResults variable, removing the html tags
@@ -172,8 +189,8 @@ void BatteryTest::failOnError(int status)
 int BatteryTest::sendEmailReport()
 {
 	
-		comm->login();
-		comm->sendHeader("TEST RESULTS: "+getName());//TODO: make sure that this changes when we failed
+	if (comm->login()) { return 1 ;}
+	if (comm->sendHeader("TEST RESULTS: " + getName())) {return 1; }//TODO: make sure that this changes when we failed
 		comm->printText(this->getTextResults());
 		comm->exit();
 		
@@ -389,7 +406,7 @@ String BatteryTest::dateToString(time_t _theDate)
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return (String)"start: " + this->dateToString(this->lastRunStart) + "<br>\n"
+	return (String)getName()+ "results: \n<br>start: " + this->dateToString(this->lastRunStart) + "<br>\n"
 		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\n" +
 		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>\n");
 }
@@ -424,4 +441,5 @@ void BatteryTest::processRequestToStopTest(int userNo)
 	}
 	
 }
+
 

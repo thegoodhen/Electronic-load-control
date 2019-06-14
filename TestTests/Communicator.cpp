@@ -1,6 +1,5 @@
 // 
 // 
-// 
 
 #include "Communicator.h"
 #include <functional>

@@ -1,4 +1,5 @@
 #include "DischargeTest.h"
+#include "NTPManager.h"
 #include <functional>
  using namespace std::placeholders; 
 
@@ -50,8 +51,8 @@ void DischargeTest::handle()
 	{
 		if (phase == PHASE_PREPARATION)
 		{
-			Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLast");
-			ch->clear();
+			//Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLast");
+			//ch->clear();
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
 			failOnError(ElectronicLoad::setUpdatePeriod(10));
 			failOnError(ElectronicLoad::setI(20));//TODO: pick from two
@@ -72,11 +73,11 @@ void DischargeTest::handle()
 				batteryCapacity += currentI * updatePeriod;//TODO: make sure the updatePeriod is correct even when the device is under heavy load
 				extractedEnergy += updatePeriod * (currentI*currentU);
 
-				Chart* ch = (Chart*)cont->getGUI()->find(getId() + "chLast");//TODO: optimize
+				//Chart* ch = (Chart*)cont->getGUI()->find(getId() + "chLast");//TODO: optimize
 				double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
 				double arr[] = { currTime,currentU };
-				ch->addPoint(ALL_CLIENTS, arr, 2);
-				if (currentU < testEndVoltage)
+				//ch->addPoint(ALL_CLIENTS, arr, 2);
+				if (currentU < testEndVoltage||currentU<20)
 				{
 					batteryCapacity = batteryCapacity / 3600;
 					extractedEnergy = extractedEnergy / 3600;
@@ -113,6 +114,16 @@ void DischargeTest::generateTextResults()
 
 void DischargeTest::reportResultsOnGUI()//TODO: do this
 {
+}
+
+void DischargeTest::saveResults()
+{
+	char theLine[200];
+	sprintf(theLine, "%s\t%.2f\t%.2f", NTPManager::dateToString(now()).c_str(), batteryCapacity, extractedEnergy);
+
+	char fname[50];
+    sprintf(fname, "%s.data", getId().c_str());
+	SpiffsPersistentSettingsUtils::appendLineTo(fname, theLine);
 }
 
 
@@ -214,4 +225,75 @@ void DischargeTest::saveSettingsCallback(int user)
 		this->setSchedulingPeriod(outArr[0], outArr[1], outArr[2]);
 	}
 	*/
+}
+
+
+	String DischargeTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
+	{
+		if ((opt1=="" ||opt2=="")|| opt3 != "" || opt4 != "" || opt4 != "")
+		{
+			return (String)"Usage: SETOPTIONS|DISCHARGE|" + batteryNo + "|(minimum capacity before the test fails)|(target voltage to discharge the battery to)";
+		}
+		if (parserUtils::retrieveFloat(opt1.c_str(), &minCapacity)<0)
+		{
+			return "Not a valid value for minimum capacity.";
+		}
+
+		float temp;
+		int isFloatValid = !(parserUtils::retrieveFloat(opt2.c_str(), &temp) < 0);
+		if (!isFloatValid || temp<20)
+		{
+			return "Not a valid value for target voltage. For safety reasons, the allowable hardcoded minimum is 20V.";
+		}
+		saveSettingsToSpiffs();
+		return "";
+	}
+
+
+void DischargeTest::saveSettingsToSpiffs()
+{
+	char fname[50];
+	sprintf(fname, "%s.cfg", getId().c_str());
+	//char* fname = (char*)((String)prefix+".cfg").c_str();
+	Serial.println(fname);
+	StaticJsonBuffer<50> jsonBuffer;
+	// Parse the root object
+	JsonObject &root = jsonBuffer.createObject();
+	// Set the values
+	root["minC"] = minCapacity;
+	root["minU"] = testEndVoltage;
+	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+}
+
+
+void DischargeTest::loadSettingsFromSpiffs()
+{
+
+	Serial.println("nacitam nastaveni...");
+	StaticJsonBuffer<1000> jb;
+	StaticJsonBuffer<1000> *jbPtr = &jb;
+
+
+
+		char fname[50];
+		sprintf(fname, "%s.cfg", getId().c_str());
+	Serial.println(fname);
+
+	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	if (root["success"] == false)
+	{
+		Serial.println("failnulo to nacitani konkretniho nastaveni toho testu...");
+	return;
+	}
+	Serial.println("nacetlo se konkretni nastaveni...");
+
+	minCapacity = root["minC"];
+	testEndVoltage = root["minU"];
+}
+
+String DischargeTest::getSettings()
+{
+	char returnStr[200];
+	sprintf(returnStr,"Minimum capacity before failure: %.2fAh\nTarget voltage: %.2fV", minCapacity, testEndVoltage);
+	return String(returnStr);
 }

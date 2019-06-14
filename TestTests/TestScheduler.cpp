@@ -15,6 +15,10 @@ BatteryTest* TestScheduler::getCurrentTest()
 
 void TestScheduler::handle()
 {
+	if (status != 0)
+	{
+		return;//if something is wrong, do not run any tests!
+	}
 	if (this->currentTest == NULL)
 	{
 		for (std::vector<BatteryTest*>::size_type i = 0; i != tests.size(); i++) {
@@ -54,7 +58,11 @@ BatteryTest* TestScheduler::findTest(int testType, int batteryNo)
 }
 
 void TestScheduler::notifyAboutTestEnd(int endMode)
-{
+{ 
+	if (endMode != 0 && endMode != 3)//neither pass, nor interrupted by user (so either an error or fail)
+	{
+		this->status = 1;
+	}
 	Serial.println("SCHEDULER KNOWS: TEST END!");
 	if (this->currentTest->getBatteryNo() == 1)
 	{
@@ -83,4 +91,14 @@ BatteryTest* TestScheduler::getLastTest(int batteryNo)
 void TestScheduler::notifyAboutTestStart(BatteryTest* _bt)
 {
 	this->currentTest = _bt;	
+}
+
+void TestScheduler::resetStatus()
+{
+	this->status = 0;
+}
+
+int TestScheduler::getStatus()
+{
+	return this->status;
 }

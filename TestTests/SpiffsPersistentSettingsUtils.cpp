@@ -34,3 +34,11 @@ void SpiffsPersistentSettingsUtils::saveSettings(JsonObject& obj, char * filenam
 	f.write(0);
 	f.close();
 }
+
+
+void SpiffsPersistentSettingsUtils::appendLineTo(char* filename, char* line)
+{
+	File f = SPIFFS.open(filename, "a");
+	f.println(line);
+	f.close();
+}

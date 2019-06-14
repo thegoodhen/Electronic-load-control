@@ -13,7 +13,7 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"},{getOptions,"GETOPTIONS"}, {resetStatus, "RESETSTATUS"}, {history,"HISTORY"} };
  TestScheduler* SerialManager::ts;
  Communicator * SerialManager::comm;
 
@@ -21,6 +21,10 @@
 
 void SerialManager::startTest(char** params, int argCount)
 {
+	if (ts->getStatus() != 0)
+	{
+		Serial.println("Running of tests is not permitted right now! Type STATUS for more information!");
+	}
   if (argCount != 2)
   {
     Serial.println("Incorrect usage. Correct usage: \"STARTTEST|TESTTYPE|BATTERYNO\" - i.e. \"STARTTEST|VOLTAGE|1\"");
@@ -97,13 +101,13 @@ void SerialManager::connectWiFi(char** params, int argCount)
 
 	while (WiFi.status() != WL_CONNECTED) 
 	{
-		Serial.println("connecting...");
-		delay(1000);
-		if (millis() - startMillis > 10000)
-		{
-			Serial.println("Unable to connect! Aborting.");
-			return;
-		}
+	Serial.println("connecting...");
+	delay(1000);
+	if (millis() - startMillis > 10000)
+	{
+		Serial.println("Unable to connect! Aborting.");
+		return;
+	}
 	}
 	Serial.print("Connected to: ");
 	Serial.println(WiFi.SSID());
@@ -128,57 +132,88 @@ void SerialManager::schedule(char** params, int argCount)
 		return;
 	}
 
-  int testType = getTestType(params[0]);
-  if (testType==-1)
-  {
-    return;
-  }
+	int testType = getTestType(params[0]);
+	if (testType == -1)
+	{
+		return;
+	}
 
-  int bNo = getBatteryNo(params[1]);
-  if (bNo == -1)
-  {
-	  return;
-  }
-  BatteryTest* bt=ts->findTest(testType,bNo);
+	int bNo = getBatteryNo(params[1]);
+	if (bNo == -1)
+	{
+		return;
+	}
+	BatteryTest* bt = ts->findTest(testType, bNo);
 
-  if (bt != NULL)
-  {
-	  if (!bt->schedule(params[2], params[3], 0))
-	  {
-		  Serial.println("Invalid scheduling settings. Correct format for start date: DD.MM.YYYY HH:MM and for period DD:HH:MM.");
-	  }
-  }
+	if (bt != NULL)
+	{
+		if (!bt->schedule(params[2], params[3], 0))
+		{
+			Serial.println("Invalid scheduling settings. Correct format for start date: DD.MM.YYYY HH:MM and for period DD:HH:MM.");
+		}
+	}
 }
+
+
+void SerialManager::history(char** params, int argCount)
+{
+	Serial.println(argCount);
+	if (argCount != 2)
+	{
+		Serial.println("Usage: HISTORY|TESTTYPE|BATTERYNO");
+		return;
+	}
+
+	int testType = getTestType(params[0]);
+	if (testType == -1)
+	{
+		return;
+	}
+
+	int bNo = getBatteryNo(params[1]);
+	if (bNo == -1)
+	{
+		return;
+	}
+	BatteryTest* bt = ts->findTest(testType, bNo);
+
+	if (bt != NULL)
+	{
+		bt->printHistoricalResults();
+	}
+}
+
+
 
 void SerialManager::lastResult(char** params, int argCount)
 {
-  if (argCount != 2)
-  {
-    Serial.println("Incorrect usage. Correct usage: LASTRESULT|TYPE|BATTERYNO");
-    return;
-  }
-  int testType = getTestType(params[0]);
-  if (testType==-1)
-  {
-    return;
-  }
+	if (argCount != 2)
+	{
+		Serial.println("Incorrect usage. Correct usage: LASTRESULT|TYPE|BATTERYNO");
+		return;
+	}
+	int testType = getTestType(params[0]);
+	if (testType == -1)
+	{
+		return;
+	}
 
-  int bNo = getBatteryNo(params[1]);
-  if (bNo == -1)
-  {
-	  return;
-  }
-  BatteryTest* bt=ts->findTest(testType,bNo);
-  if (bt != NULL)
-  {
-	  Serial.println("Last results for "+bt->getName());
-	  Serial.println(bt->getTextResults());
+	int bNo = getBatteryNo(params[1]);
+	if (bNo == -1)
+	{
+		return;
+	}
+	BatteryTest* bt = ts->findTest(testType, bNo);
+	if (bt != NULL)
+	{
+		Serial.println("Last results for " + bt->getName());
+		Serial.println(bt->getTextResults());
 
-  }
-  else
-  {
-	  Serial.println("No such test.");
-  }
+	}
+	else
+	{
+		Serial.println("No such test.");
+	}
 }
 
 void SerialManager::timeSet(char** params, int argCount)
@@ -191,13 +226,23 @@ void SerialManager::timeSet(char** params, int argCount)
 	time_t timeToSet = NTPManager::stringToDate(params[0]);
 	if (timeToSet != 0)
 	{
+		Serial.println("setting time...");
 		setTime(timeToSet);
+		ElectronicLoad::setTime(timeToSet);
+	}
+	else
+    {
+		Serial.println("not setting time");
 	}
 
 }
 
 void SerialManager::status(char** params, int argCount)
 {
+	if (ts->getStatus() == 1)//something is wrong, failed test or error
+	{
+		Serial.println("TESTING NOT PERMITTED!!!! SEE BELOW FOR DETAILS, RESOLVE PROBLEMS AND THEN USE THE \"RESETSTATUS\" command to continue");
+	}
 	Serial.print("time: ");
 	Serial.println(NTPManager::dateToString(now()));
 	
@@ -230,7 +275,7 @@ void SerialManager::status(char** params, int argCount)
 	BatteryTest* tb2 = (ts->getLastTest(2));
 	if (tb1 != NULL)
 	{
-		Serial.println(tb1->getTextResults());
+		tb1->printResultsToSerial();
 	}
 	else
 	{
@@ -239,7 +284,7 @@ void SerialManager::status(char** params, int argCount)
 	Serial.println();
 	if (tb2 != NULL)
 	{
-		Serial.println(tb2->getTextResults());
+		tb2->printResultsToSerial();
 	}
 	else
 	{
@@ -247,6 +292,11 @@ void SerialManager::status(char** params, int argCount)
 	}
 	Serial.println();
 
+}
+
+void SerialManager::resetStatus(char ** params, int argCount)
+{
+	ts->resetStatus();
 }
 
 void SerialManager::configureEmail(char** params, int argCount)
@@ -304,6 +354,34 @@ void SerialManager::setOptions(char** params, int argCount)
   }
 }
 
+
+void SerialManager::getOptions(char** params, int argCount)
+{
+  if (argCount !=2)
+  {
+    Serial.println("Incorrect usage. Correct usage: \"GETOPTIONS|TESTTYPE|BATTERYNO\"");
+    return;
+  }
+  int testType = getTestType(params[0]);
+  if (testType==-1)
+  {
+    return;
+  }
+
+  int bNo = getBatteryNo(params[1]);
+  if (bNo == -1)
+  {
+	  return;
+  }
+  BatteryTest* bt=ts->findTest(testType,bNo);
+
+  if (bt == NULL)
+  {
+	  Serial.println("The selected test is not implemented yet.");
+	  return;
+  }
+  Serial.println(bt->getSettings());	
+}
 int SerialManager :: getBatteryNo(char* input)
 {
   float outArg;
@@ -334,6 +412,7 @@ int SerialManager::getTestType(char* theName)
   Serial.println("Invalid test type; valid options are: VOLTAGE, FAST, DISCHARGE.");
   return -1;
 }
+
 
 
 

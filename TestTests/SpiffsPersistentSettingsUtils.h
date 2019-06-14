@@ -18,6 +18,7 @@ public:
 	static void begin();
 	static JsonObject & loadSettings(StaticJsonBuffer<1000>* jb, char * filename);
 	static void saveSettings(JsonObject& obj, char* filename);
+	static void appendLineTo(char * filename, char * line);
 };
 
 #endif

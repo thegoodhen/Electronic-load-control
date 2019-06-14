@@ -19,6 +19,7 @@ public:
 	void updateChart();
 	String getName() override;
 	void handle() override;
+	void saveResults() override;
 	String setOptions(String opt1, String opt2, String opt3, String opt4, String opt5) override;
 	void reportResultsOnGUI() override;
 	void loadSettingsFromSpiffs();
@@ -36,10 +37,11 @@ private:
 	int getType() override;
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
+	String getSettings() override;
 	double voltageAtStart;
 	double voltageWhenLoaded;
 	double currentWhenLoaded;
 	double voltageAtEnd;
 	double internalResistance;
-	float maxRiBeforeFail;
+	float maxRiBeforeFail=0.7;
 };

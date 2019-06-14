@@ -27,9 +27,11 @@ private:
 	Container* cont;
 	float voltageSum;
 	float averageVoltage;
+	void saveResults();
 	void startTestCallback(int user);
 	String setOptions(String opt1, String opt2, String opt3, String opt4, String opt5) override;
 	void saveSettingsCallback(int user);
 	const int MEASURMENTS_COUNT = 10;
-	float failVoltageThreshold = 10.0;
+	float failVoltageThreshold = 20.0;
+	String getSettings() override;
 };

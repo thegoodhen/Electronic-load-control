@@ -29,6 +29,7 @@ protected:
 public:
 	static int connectedBattery;
 	static int setI(float theI);
+	static int setTime(time_t theTime);
 	static int setUpdatePeriod(float thePeriod);
 	static int getI(float* target);
 	static int getU1(float* target);
@@ -36,8 +37,10 @@ public:
 	static int getU2(float* target);
 	static int getT(float* target);
 	static float parseSPIFloat(uint8_t * data);
+	static unsigned long parseSPIUL(uint8_t * data);
 	static byte parseSPIByte(uint8_t * data);
 	static void queueFloat(float f);
+	static void queueUL(unsigned long f);
 	static void queueByte(byte b);
 	static int sendData(uint8_t * data, int len, unsigned long timeout);
 	static int sendData(uint8_t * data, int len);
@@ -46,6 +49,7 @@ public:
 	static boolean areNewReadingsReady();
 	static void begin();
 	static int connectBattery(int batteryNo);
+	static int requestTime();
 	static uint8_t calcCheckSum(uint8_t * data);
 	static boolean isChksumOk(uint8_t * data);
 	static int getState();//the current state of the load

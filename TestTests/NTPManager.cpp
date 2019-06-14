@@ -147,7 +147,7 @@ void NTPManager::loadSettingsFromSpiffs()
 String NTPManager::dateToString(time_t _theDate)
 {
 	char returnString[40];
-	sprintf(returnString, "%d.%d. %d %d:%d:%d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
+	sprintf(returnString, "%d.%d. %d %02d:%02d:%02d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
 	//Serial.println("returnString");
 	//Serial.println(returnString);
 	return (String)returnString;
