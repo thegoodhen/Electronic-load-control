@@ -1,5 +1,6 @@
 #include "VoltageTest.h"
 #include "NTPManager.h"
+#include "SerialManager.h"
 #include <functional>
  using namespace std::placeholders; 
 
@@ -180,7 +181,7 @@ void VoltageTest::saveSettingsToSpiffs()
 
 	String VoltageTest::setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="")
 	{
-		if (opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
+		if (opt1=="" || opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
 		{
 			return (String)"Usage: SETOPTIONS|VOLTAGE|" + batteryNo + "|(minimum open circuit voltage before the test fails)";
 		}
@@ -270,4 +271,15 @@ String VoltageTest::getSettings()
 	char returnStr[200];
 	sprintf(returnStr,"Minimum open-circuit voltage before failure: %.2fV", failVoltageThreshold);
 	return String(returnStr);
+}
+
+String VoltageTest::getIntermediateResults()
+{
+	return "Voltage test in progress...";
+}
+
+void VoltageTest::printHistoricalResults()
+{
+	SerialManager::sendToOutputln("Date\t\tU_noload");
+	BatteryTest::printHistoricalResults();
 }

@@ -1,5 +1,6 @@
 #include "DischargeTest.h"
 #include "NTPManager.h"
+#include "SerialManager.h"
 #include <functional>
  using namespace std::placeholders; 
 
@@ -62,8 +63,6 @@ void DischargeTest::handle()
 		}
 		if (phase == PHASE_LOADING)
 		{
-			float currentI;//current as in immediate, might wanna relabel that...
-			float currentU;//current as in immediate, might wanna relabel that...
 
 			if (ElectronicLoad::areNewReadingsReady())
 			{
@@ -102,6 +101,14 @@ void DischargeTest::handle()
 	}
 }
 
+String DischargeTest::getIntermediateResults()
+{
+	char res[200];
+	sprintf(res, "Extracted energy:%.2fWh; Extracted capacity: %.2fAh; Last voltage: %.2f; Last current: %.2f", extractedEnergy/3600,batteryCapacity/3600,currentU,currentI);
+	return String(res);
+
+}
+
 String DischargeTest::getName()
 {
 	return (String)"Discharge test of battery " + this->batteryNo;
@@ -109,7 +116,7 @@ String DischargeTest::getName()
 
 void DischargeTest::generateTextResults()
 {
-	sprintf(textResults, "%sBattery capacity: <b>%.2f Ah</b>\n<br>Extracted energy: <b>%.2f Wh</b>\n<br>", getGenericLastTestInfo().c_str(), batteryCapacity, extractedEnergy);
+	sprintf(textResults, "%sBattery capacity: <b>%.2f Ah</b>\r\n<br>Extracted energy: <b>%.2f Wh</b>\r\n<br>", getGenericLastTestInfo().c_str(), batteryCapacity, extractedEnergy);
 }
 
 void DischargeTest::reportResultsOnGUI()//TODO: do this
@@ -296,4 +303,10 @@ String DischargeTest::getSettings()
 	char returnStr[200];
 	sprintf(returnStr,"Minimum capacity before failure: %.2fAh\nTarget voltage: %.2fV", minCapacity, testEndVoltage);
 	return String(returnStr);
+}
+
+void DischargeTest::printHistoricalResults()
+{
+	SerialManager::sendToOutputln("Date\t\tE_extr\tC_bat");
+	BatteryTest::printHistoricalResults();
 }

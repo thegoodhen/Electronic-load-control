@@ -24,6 +24,7 @@ public:
 	void reportResultsOnGUI() override;
 	void loadSettingsFromSpiffs();
 	void generateTextResults() override;
+	String getIntermediateResults() override;
 	String getId() override;
 	//get the textual representation of the test results
 	void generateGUI(Container* c) override;
@@ -38,6 +39,7 @@ private:
 	void startTestCallback(int user);
 	void saveSettingsCallback(int user);
 	String getSettings() override;
+	void printHistoricalResults() override;
 	double voltageAtStart;
 	double voltageWhenLoaded;
 	double currentWhenLoaded;

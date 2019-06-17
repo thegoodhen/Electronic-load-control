@@ -4,6 +4,7 @@
 
 #include <functional>
 #include "NTPManager.h"
+#include "SerialManager.h"
 
 using namespace std::placeholders;	
 
@@ -81,7 +82,10 @@ void BatteryTest::printHistoricalResults()
 	File f = SPIFFS.open(fname, "r");
 	while (f.available())
 	{
-		Serial.write(f.read());
+		char temp[1];
+		temp[0] = f.read();
+		SerialManager::sendToOutput((String)""+temp);
+		//Serial.write(f.read());
 	}
 }
 
@@ -141,10 +145,10 @@ void BatteryTest::endTest(int endMode)
 	}
 
 
-	Serial.println("TEST FINISHED. RESULTS:");
+	SerialManager::sendToOutputln("TEST FINISHED. RESULTS:");
 	printResultsToSerial();
 
-	Serial.println((unsigned long)this->scheduler);
+	//Serial.println((unsigned long)this->scheduler);
 	//Serial.println(textResults);
 
 }
@@ -166,7 +170,7 @@ void BatteryTest::printResultsToSerial()
 
 		if (!skipPrinting)
 		{
-			Serial.print(textResults[i]);
+			SerialManager::sendToOutput(String(textResults[i]));
 		}
 
 
@@ -406,9 +410,9 @@ String BatteryTest::dateToString(time_t _theDate)
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return (String)getName()+ "results: \n<br>start: " + this->dateToString(this->lastRunStart) + "<br>\n"
-		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\n" +
-		"status: " + ((!this->testFailed)?"PASSED<br>":"<span style=\"color:#FF0000;\">FAILED</span><br>\n");
+	return (String)getName()+ "results: \r\n<br>start: " + this->dateToString(this->lastRunStart) + "<br>\r\n"
+		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\r\n" +
+		"status: " + ((!this->testFailed)?"PASSED<br>\r\n":"<span style=\"color:#FF0000;\">FAILED</span><br>\r\n");
 }
 void BatteryTest::setScheduler(TestScheduler* _sch)
 {

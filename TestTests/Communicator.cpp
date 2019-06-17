@@ -23,7 +23,7 @@ Communicator::Communicator(WiFiClient theClient, char* smtpServer, char* sourceA
 
 void Communicator::begin()
 {
-	//this->loadSettingsFromSpiffs();
+	this->loadSettingsFromSpiffs();
 }
 
 int Communicator::login()
@@ -346,6 +346,7 @@ void Communicator::loadSettingsFromSpiffs()
 		sizeof(config.phoneNumber));
 
 
+	/*
 	GUI* gui = this->cont->getGUI();
 
 	gui->find("tiSMTPServer")->setDefaultText(config.smtpServer);
@@ -354,4 +355,5 @@ void Communicator::loadSettingsFromSpiffs()
 	gui->find("tiPass")->setDefaultText((String)config.sourcePass);
 	gui->find("tiTargetAddr")->setDefaultText((String)config.targetAddr);
 	gui->find("tiTargetNum")->setDefaultText((String)config.phoneNumber);
+	*/
 }

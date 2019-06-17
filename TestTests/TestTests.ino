@@ -74,7 +74,8 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.begin(ssid, pass);
+  WiFi.begin();
+  //WiFi.begin(ssid, pass);
 
   unsigned long startMillis = millis();
   while (WiFi.status() != WL_CONNECTED) {
@@ -91,7 +92,7 @@ void setup()
   comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@email.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
   ts = new TestScheduler();
 
-  //comm->begin();
+  comm->begin();
   ft = new FastTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   dt = new DischargeTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
@@ -181,12 +182,14 @@ time_t prevDisplay = 0; // when the digital clock was displayed
 void loop()
 {
 	
+	/*
   if (timeStatus() != timeNotSet) {
     if (now() != prevDisplay) { //update the display only if time has changed
       prevDisplay = now();
       digitalClockDisplay();
     }
   }
+  */
   
   ts->handle();
   //ft->handle();

@@ -34,4 +34,6 @@ private:
 	const int MEASURMENTS_COUNT = 10;
 	float failVoltageThreshold = 20.0;
 	String getSettings() override;
+	String getIntermediateResults() override;
+	void printHistoricalResults() override;
 };

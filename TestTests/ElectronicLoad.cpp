@@ -132,7 +132,8 @@ void ElectronicLoad::onData(uint8_t* data, size_t len)
 	isResultFresh = true;
 
 	
-    Serial.println(parseSPIByte(data));
+    //Serial.println(parseSPIByte(data));
+    (parseSPIByte(data));
     U1=parseSPIFloat(data);
     U2=parseSPIFloat(data);
     I=parseSPIFloat(data);
@@ -149,7 +150,7 @@ void ElectronicLoad::onData(uint8_t* data, size_t len)
 void ElectronicLoad::onDataSent()
 {
     digitalWrite(D0, LOW);
-    Serial.println("Answer Sent");
+    //Serial.println("Answer Sent");
     dataSent = true;
 }
 

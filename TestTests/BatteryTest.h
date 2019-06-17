@@ -40,7 +40,7 @@ public:
 	void processRequestToStopTest(int userNo);
 	virtual String getSettings();
 	void beginTest(boolean scheduled);
-	void printHistoricalResults();
+	virtual void printHistoricalResults();
 	virtual void handle();
 	virtual int getType();
 	virtual void saveResults();
@@ -52,6 +52,7 @@ public:
 	void endTest(int endMode);
 	void printResultsToSerial();
 	virtual String setOptions(String opt1, String opt2="", String opt3="", String opt4="", String opt5="");
+	virtual String getIntermediateResults();
 protected:
 	Communicator* comm;
 	char textResults[400];

@@ -1,6 +1,7 @@
 #include "FastTest.h"
 #include <functional>
 #include "NTPManager.h"
+#include "SerialManager.h"
 using namespace std::placeholders;
 
 FastTest::FastTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
@@ -301,8 +302,29 @@ void FastTest::saveResults()
 void FastTest::generateTextResults()
 {
 
-	sprintf(textResults, "%s\nOpen-circuit voltage: \t<b>%.4fV</b>\n<br>Voltage under load: \t<b>%.4fV</b>\n<br>Current under load: %.4f A\n<br>Internal resistance: \t<b>%.4f ohm</b>\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->currentWhenLoaded, this->internalResistance);
+	sprintf(textResults, "%s\r\nOpen-circuit voltage: \t<b>%.4fV</b>\r\n<br>Voltage under load: \t<b>%.4fV</b>\r\n<br>Current under load: %.4f A\r\n<br>Internal resistance: \t<b>%.4f ohm</b>\r\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->currentWhenLoaded, this->internalResistance);
 }
+
+String FastTest::getIntermediateResults()
+{
+	if (phase == PHASE_NOLOAD)
+	{
+		return "Measuring open-circuit voltage.";
+	}
+
+	if (phase == PHASE_LOADING)
+	{
+		return "Measuring the battery response when loaded...";
+	}
+
+	if (phase == PHASE_RECOVERY)
+	{
+		return "Measuring the battery recovery when the load is released...";
+	}
+	return "Fast test in progress...";
+
+}
+
 
 String FastTest::getId()
 {
@@ -358,4 +380,10 @@ String FastTest::getSettings()
 	char returnStr[200];
 	sprintf(returnStr,"Minimum internal resistance before failure: %.2fOh", maxRiBeforeFail);
 	return String(returnStr);
+}
+
+void FastTest::printHistoricalResults()
+{
+	SerialManager::sendToOutputln("Date\t\tR_i\tU_start\tU_load\tU_rcvr\tI_load");
+	BatteryTest::printHistoricalResults();
 }

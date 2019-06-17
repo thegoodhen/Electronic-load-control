@@ -178,7 +178,7 @@ time_t NTPManager::getNtpTime()
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  Serial.println("Transmit NTP Request");
+  Serial.println("Transmitted NTP Request");
   // get a random server from the pool
   WiFi.hostByName(config.ntpServer, ntpServerIP);
   Serial.print(config.ntpServer);
@@ -189,7 +189,7 @@ time_t NTPManager::getNtpTime()
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
-      Serial.println("Receive NTP Response");
+      Serial.println("Received NTP Response");
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
@@ -197,7 +197,21 @@ time_t NTPManager::getNtpTime()
       secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
       secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
       secsSince1900 |= (unsigned long)packetBuffer[43];
-      return secsSince1900 - 2208988800UL + config.gmtOffset* SECS_PER_HOUR;
+	  time_t NTPTime = secsSince1900 - 2208988800UL;
+
+      return secsSince1900 - 2208988800UL + config.gmtOffset* SECS_PER_HOUR ;
+	  //the following will prevent the time to syncing near the minute rollovers, but who cares? I know I don't...
+	  if (abs(minute() - minute(NTPTime)) <= 5)//time isn't off by all that much
+	  {
+			Serial.println("Time is close enough, adjusting...");
+		    tmElements_t myElements = {second(NTPTime), minute(NTPTime), hour(), weekday(), day(), month(), ( year()-1970) };
+			return makeTime(myElements);
+	  }
+	  else
+	  {
+		  Serial.println("Time is off by too much, adjust it manually.");
+		  return 0;
+	  }
     }
   }
   Serial.println("No NTP Response :-(");
