@@ -302,7 +302,7 @@ String DischargeTest::getSettings()
 {
 	char returnStr[200];
 	sprintf(returnStr,"Minimum capacity before failure: %.2fAh\nTarget voltage: %.2fV", minCapacity, testEndVoltage);
-	return String(returnStr);
+	return getSchedulingSettings()+String(returnStr);
 }
 
 void DischargeTest::printHistoricalResults()

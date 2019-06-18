@@ -270,7 +270,7 @@ String VoltageTest::getSettings()
 {
 	char returnStr[200];
 	sprintf(returnStr,"Minimum open-circuit voltage before failure: %.2fV", failVoltageThreshold);
-	return String(returnStr);
+	return getSchedulingSettings()+String(returnStr);
 }
 
 String VoltageTest::getIntermediateResults()

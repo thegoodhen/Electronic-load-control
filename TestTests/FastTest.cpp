@@ -27,6 +27,8 @@ FastTest::FastTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolea
 	this->period = makeTime(periodElems);
 
 
+	this->loadSettingsFromSpiffs();
+	this->loadSchSettingsFromSpiffs();
 	this->canRunAutomatically = scheduled;
 	this->fastForwardScheduling();
 }
@@ -263,10 +265,11 @@ void FastTest::loadSettingsFromSpiffs()
 	Serial.println("nacetlo se konkretni nastaveni...");
 
 	maxRiBeforeFail = root["maxRi"];
+	Serial.println("slepice");
 
 
 
-	GUI* gui = this->cont->getGUI();
+	//GUI* gui = this->cont->getGUI();
 	//gui->find(getId()+"tiMaxRiBeforeFail")->setDefaultText((String)maxRiBeforeFail);
 }
 
@@ -287,7 +290,7 @@ void FastTest::saveResults()
 	{
 		if (opt1=="" || opt2 != "" || opt3 != "" || opt4 != "" || opt4 != "")
 		{
-			return (String)"Usage: SETOPTIONS|FAST|" + batteryNo + "|(minimum internal resistance before the test fails)";
+			return (String)"Usage: SETOPTIONS|FAST|" + batteryNo + "|(maximum internal resistance before the test fails)";
 		}
 		if (parserUtils::retrieveFloat(opt1.c_str(), &maxRiBeforeFail)<0)
 		{
@@ -379,7 +382,7 @@ String FastTest::getSettings()
 {
 	char returnStr[200];
 	sprintf(returnStr,"Minimum internal resistance before failure: %.2fOh", maxRiBeforeFail);
-	return String(returnStr);
+	return getSchedulingSettings()+String(returnStr);
 }
 
 void FastTest::printHistoricalResults()

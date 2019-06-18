@@ -29,8 +29,19 @@ void NTPManager::begin()
   Serial.print("Local port: ");
   Serial.println(Udp.localPort());
   Serial.println("waiting for sync");
-  setSyncProvider(getNtpTime);
-  setSyncInterval(300);
+  //setSyncProvider(getNtpTime);
+  //setSyncInterval(300);
+}
+
+void NTPManager::loop()
+{
+	unsigned static long lastMillis;
+	if (millis() - lastMillis > (unsigned long)1 * 60 * 1000)
+	{
+		slightlyAdjustTime();
+		lastMillis = millis();
+	}
+
 }
 
 void NTPManager::generateGUI(Container* c)
@@ -154,6 +165,18 @@ String NTPManager::dateToString(time_t _theDate)
 	
 }
 
+
+String NTPManager::periodToString(time_t _thePeriod)
+{
+	char returnString[40];
+	sprintf(returnString, "%dd:%dh:%dm", day(_thePeriod), hour(_thePeriod),minute(_thePeriod));
+	//Serial.println("returnString");
+	//Serial.println(returnString);
+	return (String)returnString;
+	
+}
+
+
 time_t NTPManager::stringToDate(String dateStr)
 {
 	if (!isDateValid(dateStr))
@@ -173,7 +196,7 @@ time_t NTPManager::stringToDate(String dateStr)
 }
 
 
-time_t NTPManager::getNtpTime()
+void NTPManager::slightlyAdjustTime()
 {
   IPAddress ntpServerIP; // NTP server's ip address
 
@@ -199,23 +222,34 @@ time_t NTPManager::getNtpTime()
       secsSince1900 |= (unsigned long)packetBuffer[43];
 	  time_t NTPTime = secsSince1900 - 2208988800UL;
 
-      return secsSince1900 - 2208988800UL + config.gmtOffset* SECS_PER_HOUR ;
+	  //return 0;
+	  // return secsSince1900 - 2208988800UL + config.gmtOffset* SECS_PER_HOUR ;
 	  //the following will prevent the time to syncing near the minute rollovers, but who cares? I know I don't...
 	  if (abs(minute() - minute(NTPTime)) <= 5)//time isn't off by all that much
 	  {
 			Serial.println("Time is close enough, adjusting...");
-		    tmElements_t myElements = {second(NTPTime), minute(NTPTime), hour(), weekday(), day(), month(), ( year()-1970) };
-			return makeTime(myElements);
+
+			int yr = CalendarYrToTm(year());
+		    tmElements_t myElements = {second(NTPTime), minute(NTPTime), hour(), weekday(), day(), month(), yr };
+			setTime(makeTime(myElements));
+			ElectronicLoad::setTime(makeTime(myElements));
+			return;
 	  }
 	  else
 	  {
 		  Serial.println("Time is off by too much, adjust it manually.");
-		  return 0;
+		  return ;
 	  }
     }
   }
   Serial.println("No NTP Response :-(");
-  return 0; // return 0 if unable to get the time
+  return ; // return 0 if unable to get the time
+
+}
+
+
+time_t NTPManager::getNtpTime()
+{
 }
 
 // send an NTP request to the time server at the given address

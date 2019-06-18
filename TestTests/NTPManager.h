@@ -16,6 +16,7 @@ class NTPManager
 private:
 public:
 	static void begin();
+	static void loop();
 	static void generateGUI(Container* c);
 	static boolean isDateValid(String theDate);
 
@@ -28,7 +29,10 @@ public:
 	};
 	static ntpConfig config;
 	static time_t stringToDate(String dateStr);
+	static void slightlyAdjustTime();
 	static String dateToString(time_t _theDate);
+
+	static String periodToString(time_t _theDate);
 
 protected:
 

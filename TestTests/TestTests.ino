@@ -199,6 +199,7 @@ void loop()
 	//sd->loop();
 	sm->loop();
 	ElectronicLoad::heartBeat();
+	NTPManager::loop();
 }
 
 void digitalClockDisplay()

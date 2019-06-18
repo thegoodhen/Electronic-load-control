@@ -367,16 +367,6 @@ void BatteryTest::loadSchSettingsFromSpiffs()
 	config.mailSettings= root["mailSettings"];
 	parseLoadedSettings();
 
-
-
-
-	GUI* gui = this->cont->getGUI();
-
-	gui->find((String)prefix+"tifr")->setDefaultText(config.firstRun);
-	gui->find((String)prefix+"tiP")->setDefaultText(config.runPeriod);
-	gui->find((String)prefix + "cbir")->setDefaultIntValue(config.storeResults);
-	gui->find((String)prefix + "lbMail")->setDefaultIntValue(config.mailSettings);
-	//gui->find((String)prefix+"cbir")
 	//gui->find((String)prefix+"lbMail")->setDefaultText(config.mailSettings);
 }
 
@@ -422,6 +412,15 @@ void BatteryTest::setScheduler(TestScheduler* _sch)
 time_t BatteryTest::getScheduledStartTime()
 {
 	return this->scheduledStartTime;
+}
+
+String BatteryTest::getSchedulingSettings()
+{
+	String returnStr = "";
+	returnStr+=("Initial scheduled time: "+(String)config.firstRun+"\r\n");
+	returnStr+=(("Period between test runs: "+(String)config.runPeriod+"\r\n"));
+	returnStr+=("Next run in: "+NTPManager::dateToString(this->scheduledStartTime)+"\r\n");
+	return returnStr;
 }
 
 void BatteryTest::processRequestToStopTest(int userNo)

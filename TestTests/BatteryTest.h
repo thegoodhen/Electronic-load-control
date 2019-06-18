@@ -37,6 +37,7 @@ public:
 	char* slepice = "";
 	void setScheduler(TestScheduler * _sch);
 	time_t getScheduledStartTime();
+	String getSchedulingSettings();
 	void processRequestToStopTest(int userNo);
 	virtual String getSettings();
 	void beginTest(boolean scheduled);
