@@ -12,7 +12,7 @@ class VoltageTest:public BatteryTest
 	
 public:
 	//VoltageTest(Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
-	VoltageTest(int _batteryNo, TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
+	VoltageTest(Battery * b, TestScheduler * ts, Communicator * comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute);
 	void generateTextResults() override;
 	void reportResultsOnGUI() override;
 	void handle() override;

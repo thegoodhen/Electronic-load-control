@@ -10,6 +10,7 @@
 #include "Arduino.h"
 
 #include "TestScheduler.h"
+#include "Battery.h"
 
 #define REPORT_MAIL_NEVER 0//do not send an email
 #define REPORT_MAIL_ONFAIL 1//send an email only if the battery fails the test 
@@ -122,6 +123,7 @@ protected:
 	String dateToString(time_t _theDate);
 	String getGenericLastTestInfo();
 
+	Battery* bat;
 
 	//String schedulingGUIPrefix;// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,
 	//char* slepice="";// = "";//since the scheduling is the same for all tests, it is handled in the generic BatteryTest class; but since GUI elements are placed and their IDs have to be unique,

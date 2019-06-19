@@ -17,6 +17,7 @@ private:
 	BatteryTest* lastTestBat2 = 0;
 	int status = 0;//0 = OK, 1 = FAIL
 public:
+	std::vector<BatteryTest*> getTests();
 	void addTest(BatteryTest* bt);
 	BatteryTest* getCurrentTest();
 	void handle();

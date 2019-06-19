@@ -388,6 +388,9 @@ void SerialManager::status(char** params, int argCount)
 	}
 	sendToOutputln("");
 
+	Battery::get(1)->printProperthies();
+	Battery::get(2)->printProperthies();
+
 }
 
 void SerialManager::resetStatus(char ** params, int argCount)
@@ -455,6 +458,20 @@ void SerialManager::setOptions(char** params, int argCount)
 
 void SerialManager::getOptions(char** params, int argCount)
 {
+	if (argCount == 0)
+	{
+		std::vector<BatteryTest*> tests = ts->getTests();
+		for (std::vector<BatteryTest*>::size_type i = 0; i != tests.size(); i++) {
+			BatteryTest* bt = (tests)[i];
+			sendToOutputln(" ");
+			sendToOutput("Options for: ");
+			sendToOutputln(bt->getName());
+			sendToOutputln("-------------------------------");
+			sendToOutputln(bt->getSettings());	
+		}
+		return;
+	}
+
   if (argCount !=2)
   {
 

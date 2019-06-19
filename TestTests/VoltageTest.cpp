@@ -4,9 +4,10 @@
 #include <functional>
  using namespace std::placeholders; 
 
- VoltageTest::VoltageTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
+ VoltageTest::VoltageTest(Battery* b, TestScheduler* ts, Communicator* comm, boolean scheduled, int firstRunYear, int firstRunMonth, int firstRunDay, int firstRunHour, int firstRunMinute, int periodDay, int periodHour, int periodMinute)
 {
-    this->batteryNo = _batteryNo;
+	 this->bat = b;
+	 this->batteryNo = b->getNumber();
 	ts->addTest(this);
 	this->comm = comm;
 	firstRunYear = CalendarYrToTm(firstRunYear);
@@ -93,6 +94,7 @@ void VoltageTest::handle()
 				}
 
 
+				bat->updateProperthies(averageVoltage, -1, -1);
 				endTest(testFailed);
 
 			}

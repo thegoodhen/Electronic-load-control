@@ -5,7 +5,8 @@
  * This sketch uses the ESP8266WiFi library
  */
 
- #include "TestScheduler.h"
+ #include "Battery.h"
+#include "TestScheduler.h"
 #include "SpiffsPersistentSettingsUtils.h"
 #include "parserUtils.h"
 #include "Communicator.h"
@@ -93,11 +94,14 @@ void setup()
   ts = new TestScheduler();
 
   comm->begin();
+  Battery* b1 = Battery::get(1);
+  Battery* b2 = Battery::get(2);
+
   ft = new FastTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  vt = new VoltageTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vt = new VoltageTest(b1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   dt = new DischargeTest(1, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   ftb2 = new FastTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
-  vtb2 = new VoltageTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
+  vtb2 = new VoltageTest(b2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   dtb2 = new DischargeTest(2, ts, comm, true, 2019, 12, 19, 16, 04, 0, 2, 2);
   sd = new StatusDisplay(ts);
   sm = new SerialManager(ts, comm);

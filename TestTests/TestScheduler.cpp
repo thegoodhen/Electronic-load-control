@@ -2,6 +2,11 @@
 #include "TestScheduler.h"
 #include "BatteryTest.h"
 
+std::vector<BatteryTest*> TestScheduler::getTests()
+{
+	return this->tests;
+}
+
 void TestScheduler::addTest(BatteryTest * bt)
 {
 	tests.push_back(bt);

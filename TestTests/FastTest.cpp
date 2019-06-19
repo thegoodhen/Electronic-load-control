@@ -132,14 +132,9 @@ void FastTest::handle()
 				{
 					this->testFailed = true;
 				}
-				if(testFailed)
-				{ 
-					endTest(1);
-				}
-				else
-				{
-					endTest(0);
-				}
+
+				Battery::get(batteryNo)->updateProperthies(voltageAtStart, internalResistance, -1);
+				endTest(testFailed);
 
 
 
