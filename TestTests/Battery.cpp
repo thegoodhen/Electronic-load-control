@@ -17,7 +17,7 @@ Battery::Battery(int _batteryNo)
 void Battery::updateProperthies(double _OCV, double _Ri, double _c)
 {
 	time_t timeNow = now();
-	String lineStr = "";
+	String lineStr = NTPManager::dateToString(timeNow)+"\t";
 	
 	if (_OCV > 0)//new value
 	{
@@ -83,15 +83,15 @@ void Battery::printProperthies()
 void Battery::printHistory()
 {
 	char fname[50];
-    sprintf(fname, "%d.data", this->batteryNo);
+    sprintf(fname, "b%d.data", this->batteryNo);
 	File f = SPIFFS.open(fname, "r");
+	SerialManager::sendToOutputln(F("Date\tU_oc\tR_i\tC"));
 	while (f.available())
 	{
-		char temp[1];
-		temp[0] = f.read();
-		SerialManager::sendToOutput((String)""+temp);
+		SerialManager::sendToOutput(f.read());
 		//Serial.write(f.read());
 	}
+	f.close();
 }
 
 int Battery::getNumber()

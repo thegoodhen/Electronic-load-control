@@ -20,6 +20,9 @@
 	tmElements_t periodElems = { 0,periodMinute,periodHour,1, periodDay+1, 1, 0};
 	this->period = makeTime(periodElems);
 
+	this->loadSettingsFromSpiffs();
+	this->loadSchSettingsFromSpiffs();
+
 
 	this->canRunAutomatically = scheduled;
 }
@@ -57,41 +60,53 @@ void DischargeTest::handle()
 			failOnError(ElectronicLoad::connectBattery(this->batteryNo));
 			failOnError(ElectronicLoad::setUpdatePeriod(10));
 			failOnError(ElectronicLoad::setI(20));//TODO: pick from two
-			Serial.println("prep phase");
-			phase = PHASE_LOADING;
+			//Serial.println("prep phase");
+			phase = PHASE_TRANSIENT;
 			return;
+		}
+		if (phase == PHASE_TRANSIENT)
+		{
+			if (millis() - startMillis > 30000)
+			{
+				phase = PHASE_LOADING;
+				ElectronicLoad::getU(&initialU,batteryNo);
+				return;
+			}
 		}
 		if (phase == PHASE_LOADING)
 		{
 
 			if (ElectronicLoad::areNewReadingsReady())
 			{
+				static unsigned long lastMillis;
+
 				ElectronicLoad::getI(&currentI);
 				ElectronicLoad::getU(&currentU, batteryNo);
 				//current in amps times the number of seconds = capacity in ampseconds
-				batteryCapacity += currentI * updatePeriod;//TODO: make sure the updatePeriod is correct even when the device is under heavy load
-				extractedEnergy += updatePeriod * (currentI*currentU);
+				unsigned long actualPeriod = (millis() - lastMillis)/1000.0;
+				lastMillis = millis();
+
+				extractedCapacity += currentI * actualPeriod;
+				extractedEnergy += actualPeriod* (currentI*currentU);
 
 				//Chart* ch = (Chart*)cont->getGUI()->find(getId() + "chLast");//TODO: optimize
 				double currTime = this->lastRunStart + ((millis() - startMillis) / (double)1000);
 				double arr[] = { currTime,currentU };
 				//ch->addPoint(ALL_CLIENTS, arr, 2);
+
+				float Udrop =  initialU-currentU;
+				float Uch = 28.8;//28.8V when charged
+				float Udis = 21;//21V when discharged
+				float capacityFraction = Udrop / (Uch - Udis);//how much capacity have we extracted, 0=nothing, 1=100% DoD
+				batteryCapacity = extractedCapacity / capacityFraction;
+
 				if (currentU < testEndVoltage||currentU<20)
 				{
-					batteryCapacity = batteryCapacity / 3600;
-					extractedEnergy = extractedEnergy / 3600;
-					if (batteryCapacity < minCapacity)
+					if (extractedCapacity < (minCapacity*3600))
 					{
 						testFailed = true;
 					}
-					if (testFailed)
-					{
-						endTest(1);
-					}
-					else
-					{
-						endTest(0);
-					}
+					endTest(testFailed);
 				}
 
 			}
@@ -104,7 +119,7 @@ void DischargeTest::handle()
 String DischargeTest::getIntermediateResults()
 {
 	char res[200];
-	sprintf(res, "Extracted energy:%.2fWh; Extracted capacity: %.2fAh; Last voltage: %.2f; Last current: %.2f", extractedEnergy/3600,batteryCapacity/3600,currentU,currentI);
+	sprintf(res, "Extracted energy:%.2fWh; Estimated capacity: %.2fAh; Last voltage: %.2f; Last current: %.2f", extractedEnergy/3600,batteryCapacity/3600,currentU,currentI);
 	return String(res);
 
 }
@@ -116,7 +131,7 @@ String DischargeTest::getName()
 
 void DischargeTest::generateTextResults()
 {
-	sprintf(textResults, "%sBattery capacity: <b>%.2f Ah</b>\r\n<br>Extracted energy: <b>%.2f Wh</b>\r\n<br>", getGenericLastTestInfo().c_str(), batteryCapacity, extractedEnergy);
+	sprintf(textResults, "%sBattery capacity:\t\t<b>%.2f Ah</b>\r\n<br>Extracted energy:\t\t<b>%.2f Wh</b>\r\n<br>", getGenericLastTestInfo().c_str(), batteryCapacity/3600, extractedEnergy/3600);
 }
 
 void DischargeTest::reportResultsOnGUI()//TODO: do this
@@ -126,7 +141,7 @@ void DischargeTest::reportResultsOnGUI()//TODO: do this
 void DischargeTest::saveResults()
 {
 	char theLine[200];
-	sprintf(theLine, "%s\t%.2f\t%.2f", NTPManager::dateToString(now()).c_str(), batteryCapacity, extractedEnergy);
+	sprintf(theLine, "%s\t%.2f\t%.2f", NTPManager::dateToString(now()).c_str(), extractedCapacity, extractedEnergy);
 
 	char fname[50];
     sprintf(fname, "%s.data", getId().c_str());
@@ -252,6 +267,7 @@ void DischargeTest::saveSettingsCallback(int user)
 		{
 			return "Not a valid value for target voltage. For safety reasons, the allowable hardcoded minimum is 20V.";
 		}
+		this->testEndVoltage= temp;
 		saveSettingsToSpiffs();
 		return "";
 	}
@@ -301,7 +317,7 @@ void DischargeTest::loadSettingsFromSpiffs()
 String DischargeTest::getSettings()
 {
 	char returnStr[200];
-	sprintf(returnStr,"Minimum capacity before failure: %.2fAh\nTarget voltage: %.2fV", minCapacity, testEndVoltage);
+	sprintf(returnStr,"Minimum capacity before failure:\t%.2fAh\nTarget voltage:\t\t\t%.2fV", minCapacity, testEndVoltage);
 	return getSchedulingSettings()+String(returnStr);
 }
 

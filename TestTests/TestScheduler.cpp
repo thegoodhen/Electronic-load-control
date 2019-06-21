@@ -36,6 +36,10 @@ void TestScheduler::handle()
 					bt->fastForwardScheduling();
 					return;
 				}
+				if (!bt->autorunEnabled())
+				{
+					return;
+				}
 				bt->beginTest(true);
 				this->currentTest = bt;
 				return;

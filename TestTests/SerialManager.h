@@ -40,6 +40,7 @@ public:
 	void begin();
 	void handleData();
 	static void sendToOutput(String str);
+	static void sendToOutput(char ch);
 	static void sendToOutputln(String str);
 	void loop();
 	void parseCommand(char * str);
@@ -98,6 +99,12 @@ static void enableTelnet(char ** params, int argCount);
 static void disableTelnet(char ** params, int argCount);
 
 static void format(char ** params, int argCount);
+
+static void batteryHistory(char ** params, int argCount);
+
+static void enableAuto(char ** params, int argCount);
+
+static void disableAuto(char ** params, int argCount);
 
 static int getBatteryNo(char * input);
 

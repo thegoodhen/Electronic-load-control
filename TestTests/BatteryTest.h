@@ -40,6 +40,8 @@ public:
 	time_t getScheduledStartTime();
 	String getSchedulingSettings();
 	void processRequestToStopTest(int userNo);
+	void enableAutorun();
+	void disableAutorun();
 	virtual String getSettings();
 	void beginTest(boolean scheduled);
 	virtual void printHistoricalResults();
@@ -48,7 +50,9 @@ public:
 	virtual void saveResults();
 	void fastForwardScheduling();
 	int getBatteryNo();
-	char* getTextResults();//get the textual representation of the test results
+	char* getTextResults();
+	boolean autorunEnabled();
+	//get the textual representation of the test results
 	virtual void generateTextResults();
 	boolean schedule(String firstRun, String period, int mailSettings);
 	void endTest(int endMode);
@@ -60,7 +64,7 @@ protected:
 	char textResults[400];
 	TestScheduler* scheduler=NULL;
 	Container* cont=NULL;
-	boolean canRunAutomatically;//whether the test is scheduled to be run automatically
+	boolean canRunAutomatically=true;//whether the test is scheduled to be run automatically
 	time_t firstScheduledStartTime;//the first time the test is scheduled to; the time instants when the test should be run are defined by the first time and the period
 	time_t period;//the period (i.e. how often the test is run)
 	time_t scheduledStartTime;//the time the next test is scheduled to
@@ -111,6 +115,7 @@ protected:
 		char firstRun[50];
 		char runPeriod[50];
 		boolean storeResults;
+		boolean autorun = true;
 		int mailSettings;
 		int SMSSettings;
 	};

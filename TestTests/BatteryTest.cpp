@@ -18,6 +18,11 @@ char* BatteryTest::getTextResults()
 	return textResults;
 }
 
+boolean BatteryTest::autorunEnabled()
+{
+	return this->config.autorun;
+}
+
 void BatteryTest::setFirstScheduledStartTime(int day, int month, int year, int hour, int min)
 {
 	
@@ -38,6 +43,11 @@ void BatteryTest::beginTest(boolean scheduled)
 {
 	BatteryTest* bt = this->scheduler->getCurrentTest();
 	if (this->scheduler->getStatus() != 0)//testing not permitted
+	{
+		return;
+	}
+	
+	if (scheduled && !this->config.autorun)//if the attempt to run this test was made by the scheduler, but the test cannot be ran automatically, disregard
 	{
 		return;
 	}
@@ -82,11 +92,10 @@ void BatteryTest::printHistoricalResults()
 	File f = SPIFFS.open(fname, "r");
 	while (f.available())
 	{
-		char temp[1];
-		temp[0] = f.read();
-		SerialManager::sendToOutput((String)""+temp);
+		SerialManager::sendToOutput(f.read());
 		//Serial.write(f.read());
 	}
+	f.close();
 }
 
 void BatteryTest::fastForwardScheduling()
@@ -312,10 +321,10 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 void BatteryTest::saveSchSettingsToSpiffs()
 {
 	Serial.println("ten prefix je:");
-		Serial.println(prefix);
+		Serial.println(this->getId());
 
 		char fname[50];
-		sprintf(fname, "%s_sch.cfg", prefix);
+		sprintf(fname, "%s_sch.cfg", this->getId().c_str());
 
 	//char* fname = (char*)((String)prefix+".cfg").c_str();
 	Serial.println(fname);
@@ -330,6 +339,8 @@ void BatteryTest::saveSchSettingsToSpiffs()
 	root["runPeriod"] = config.runPeriod;
 	root["storeResults"] = config.storeResults;
 	root["mailSettings"] = config.mailSettings;
+	root["autorun"] = config.autorun;
+
 	parseLoadedSettings();//this will actually apply the settings...
 	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
 }
@@ -343,8 +354,8 @@ void BatteryTest::loadSchSettingsFromSpiffs()
 
 
 
-		char fname[50];
-		sprintf(fname, "%s_sch.cfg", prefix);
+	char fname[50];
+	sprintf(fname, "%s_sch.cfg", this->getId().c_str());
 	Serial.println(fname);
 
 	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
@@ -365,6 +376,7 @@ void BatteryTest::loadSchSettingsFromSpiffs()
 
 	config.storeResults = root["storeResults"];
 	config.mailSettings= root["mailSettings"];
+	config.autorun= root["autorun"];
 	parseLoadedSettings();
 
 	//gui->find((String)prefix+"lbMail")->setDefaultText(config.mailSettings);
@@ -400,9 +412,9 @@ String BatteryTest::dateToString(time_t _theDate)
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return (String)getName()+ "results: \r\n<br>start: " + this->dateToString(this->lastRunStart) + "<br>\r\n"
-		+ "end: " + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\r\n" +
-		"status: " + ((!this->testFailed)?"PASSED<br>\r\n":"<span style=\"color:#FF0000;\">FAILED</span><br>\r\n");
+	return "\r\n"+(String)getName()+ " results: \r\n-----------------------\r\n<br>start:\t\t" + this->dateToString(this->lastRunStart) + "<br>\r\n"
+		+ "end:\t\t" + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\r\n" +
+		"status:\t\t" + ((!this->testFailed)?"PASSED<br>\r\n":"<span style=\"color:#FF0000;\">FAILED</span><br>\r\n");
 }
 void BatteryTest::setScheduler(TestScheduler* _sch)
 {
@@ -417,9 +429,9 @@ time_t BatteryTest::getScheduledStartTime()
 String BatteryTest::getSchedulingSettings()
 {
 	String returnStr = "";
-	returnStr+=("Initial scheduled time: "+(String)config.firstRun+"\r\n");
-	returnStr+=(("Period between test runs: "+(String)config.runPeriod+"\r\n"));
-	returnStr+=("Next run in: "+NTPManager::dateToString(this->scheduledStartTime)+"\r\n");
+	returnStr+=("Initial scheduled time:\t\t"+(String)config.firstRun+"\r\n");
+	returnStr+=(("Period between test runs:\t\t"+(String)config.runPeriod+"\r\n"));
+	returnStr+=("Next run in:\t\t\t"+NTPManager::dateToString(this->scheduledStartTime)+"\r\n");
 	return returnStr;
 }
 
@@ -446,3 +458,14 @@ void BatteryTest::processRequestToStopTest(int userNo)
 }
 
 
+void BatteryTest::enableAutorun()
+{
+	this->config.autorun = true;
+	this->saveSchSettingsToSpiffs();
+}
+
+void BatteryTest::disableAutorun()
+{
+	this->config.autorun = false;
+	this->saveSchSettingsToSpiffs();
+}

@@ -13,7 +13,7 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{scanWiFi, "SCANWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"},{getOptions,"GETOPTIONS"}, {resetStatus, "RESETSTATUS"}, {history,"HISTORY"}, {enableTelnet, "ENABLETELNET"},{disableTelnet,"DISABLETELNET"}, {format,"FORMAT"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{scanWiFi, "SCANWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"},{getOptions,"GETOPTIONS"}, {resetStatus, "RESETSTATUS"}, {history,"HISTORY"}, {enableTelnet, "ENABLETELNET"},{disableTelnet,"DISABLETELNET"}, {format,"FORMAT"},{batteryHistory, "BATTERYHISTORY"},{enableAuto, "ENABLEAUTO"} ,{disableAuto,"DISABLEAUTO"} };
  TestScheduler* SerialManager::ts;
  Communicator * SerialManager::comm;
 //how many clients should be able to telnet to this ESP8266
@@ -284,8 +284,7 @@ void SerialManager::lastResult(char** params, int argCount)
 	if (bt != NULL)
 	{
 		sendToOutputln("Last results for " + bt->getName());
-		sendToOutputln(bt->getTextResults());
-
+		bt->printResultsToSerial();
 	}
 	else
 	{
@@ -338,22 +337,22 @@ void SerialManager::status(char** params, int argCount)
 	{
 		sendToOutputln("TESTING NOT PERMITTED!!!! SEE BELOW FOR DETAILS, RESOLVE PROBLEMS AND THEN USE THE \"RESETSTATUS\" command to continue");
 	}
-	sendToOutput("time: ");
+	sendToOutput("time: \t\t\t");
 	sendToOutputln(NTPManager::dateToString(now()));
 	
 	if (WiFi.status() == WL_CONNECTED)
 	{
-		sendToOutputln("WiFi status: connected");
-		sendToOutput("AP:");
+		sendToOutputln("WiFi status: \t\tconnected");
+		sendToOutput("AP: \t\t\t");
 		sendToOutputln(WiFi.SSID());
-		sendToOutput("IP: ");
+		sendToOutput("IP: \t\t\t");
 		sendToOutputln(WiFi.localIP().toString());
 	}
 	else
 	{
-		sendToOutputln("WiFi status: disconnected");
+		sendToOutputln("WiFi status: \t\tdisconnected");
 	}
-	sendToOutput("Currently running test:");
+	sendToOutput("Currently running test: \t");
 	BatteryTest* currentTest = ts->getCurrentTest();
 	if (currentTest == NULL)
 	{
@@ -366,29 +365,13 @@ void SerialManager::status(char** params, int argCount)
 	}
 	sendToOutputln("");
 	sendToOutputln("");
-	sendToOutputln("Last results:");
-	BatteryTest* tb1 = (ts->getLastTest(1));
-	BatteryTest* tb2 = (ts->getLastTest(2));
-	if (tb1 != NULL)
-	{
-		tb1->printResultsToSerial();
-	}
-	else
-	{
-		sendToOutputln("(no test for battery 1 yet)");
-	}
-	Serial.println("");
-	if (tb2 != NULL)
-	{
-		tb2->printResultsToSerial();
-	}
-	else
-	{
-		sendToOutputln("(no test for battery 2 yet)");
-	}
-	sendToOutputln("");
+	sendToOutputln("Battery 1: ");
+	sendToOutputln("------------");
 
 	Battery::get(1)->printProperthies();
+
+	sendToOutputln("Battery 2: ");
+	sendToOutputln("------------");
 	Battery::get(2)->printProperthies();
 
 }
@@ -569,6 +552,86 @@ void SerialManager::format(char** params, int argCount)
 }
 
 
+void SerialManager::batteryHistory(char** params, int argCount)
+{
+	if (argCount != 1)
+	{
+		sendToOutputln("Incorrect usage. Correct usage:");
+		showHelp("BATTERYHISTORY");
+		return;
+	}
+	int batteryNo = getBatteryNo(params[0]);
+	if (batteryNo <= 0)
+	{
+		return;
+	}
+	Battery::get(batteryNo)->printHistory();
+}
+
+
+
+void SerialManager::enableAuto(char** params, int argCount)
+{
+
+	if (argCount != 2)
+	{
+
+		sendToOutputln("Incorrect usage. Correct usage:");
+		showHelp("ENABLEAUTO");
+		return;
+	}
+	int testType = getTestType(params[0]);
+	if (testType == -1)
+	{
+		return;
+	}
+
+	int bNo = getBatteryNo(params[1]);
+	if (bNo == -1)
+	{
+		return;
+	}
+	BatteryTest* bt = ts->findTest(testType, bNo);
+
+	if (bt == NULL)
+	{
+		sendToOutputln("The selected test is not implemented yet.");
+		return;
+	}
+	bt->enableAutorun();
+}
+
+
+void SerialManager::disableAuto(char** params, int argCount)
+{
+
+	if (argCount != 2)
+	{
+
+		sendToOutputln("Incorrect usage. Correct usage:");
+		showHelp("DISABLEAUTO");
+		return;
+	}
+	int testType = getTestType(params[0]);
+	if (testType == -1)
+	{
+		return;
+	}
+
+	int bNo = getBatteryNo(params[1]);
+	if (bNo == -1)
+	{
+		return;
+	}
+	BatteryTest* bt = ts->findTest(testType, bNo);
+
+	if (bt == NULL)
+	{
+		sendToOutputln("The selected test is not implemented yet.");
+		return;
+	}
+	bt->disableAutorun();
+}
 
 int SerialManager :: getBatteryNo(char* input)
 {
@@ -709,6 +772,20 @@ int SerialManager::getTestType(char* theName)
     for(int i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()){
         serverClients[i].write(str.c_str(), strlen(str.c_str()));
+        delay(1);
+      }
+    }
+ }
+
+ void SerialManager::sendToOutput(char ch)
+ {
+	 Serial.write(ch);
+
+    for(int i = 0; i < MAX_SRV_CLIENTS; i++){
+      if (serverClients[i] && serverClients[i].connected()){
+		  char tempStr[1];
+		  tempStr[0] = ch;
+        serverClients[i].write(tempStr,1);
         delay(1);
       }
     }
@@ -937,6 +1014,11 @@ void SerialManager::showHelp(char* topic)
 	if (strcmp(topic, "FORMAT") == 0)
 	{
 		sendToOutputln(F("FORMAT (no arguments) - format the SPIFFS memory, deleting all historical data and settings, reverting to factory defaults."));
+	}
+
+	if (strcmp(topic, "BATTERYHISTORY") == 0)
+	{
+		sendToOutputln(F("BATTERYHISTORY|(battery number) - print the history of the battery properthies"));
 	}
 	sendToOutputln(F("Unknown command."));
 		

@@ -300,7 +300,7 @@ void FastTest::saveResults()
 void FastTest::generateTextResults()
 {
 
-	sprintf(textResults, "%s\r\nOpen-circuit voltage: \t<b>%.4fV</b>\r\n<br>Voltage under load: \t<b>%.4fV</b>\r\n<br>Current under load: %.4f A\r\n<br>Internal resistance: \t<b>%.4f ohm</b>\r\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->currentWhenLoaded, this->internalResistance);
+	sprintf(textResults, "%s\r\nOpen-circuit voltage: \t<b>%.4fV</b>\r\n<br>Voltage under load: \t\t<b>%.4fV</b>\r\n<br>Current under load: \t\t%.4f A\r\n<br>Internal resistance: \t\t<b>%.4f ohm</b>\r\n", this->getGenericLastTestInfo().c_str(), this->voltageAtStart, this->voltageWhenLoaded, this->currentWhenLoaded, this->internalResistance);
 }
 
 String FastTest::getIntermediateResults()
@@ -376,7 +376,7 @@ void FastTest::saveSettingsCallback(int user)
 String FastTest::getSettings()
 {
 	char returnStr[200];
-	sprintf(returnStr,"Minimum internal resistance before failure: %.2fOh", maxRiBeforeFail);
+	sprintf(returnStr,"Minimum Ri before failure: \t\t%.2fOhms", maxRiBeforeFail);
 	return getSchedulingSettings()+String(returnStr);
 }
 

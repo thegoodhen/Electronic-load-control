@@ -22,13 +22,16 @@
 	this->period = makeTime(periodElems);
 
 
+	this->loadSettingsFromSpiffs();
+	this->loadSchSettingsFromSpiffs();
+	
 	this->canRunAutomatically = scheduled;
 	this->fastForwardScheduling();
 }
 
  void VoltageTest::generateTextResults()
  {
-	sprintf(textResults, "%s\nOpen-circuit voltage (out of %d samples): %.4f", this->getGenericLastTestInfo().c_str(), MEASURMENTS_COUNT, averageVoltage);
+	sprintf(textResults, "%s\nOpen-circuit voltage (out of %d samples): \t%.4fV\r\n", this->getGenericLastTestInfo().c_str(), MEASURMENTS_COUNT, averageVoltage);
  }
 
  void VoltageTest::reportResultsOnGUI()
@@ -225,11 +228,6 @@ void VoltageTest::loadSettingsFromSpiffs()
 	Serial.println("nacetlo se konkretni nastaveni...");
 
 	failVoltageThreshold= root["minU"];
-
-
-
-	GUI* gui = this->cont->getGUI();
-	gui->find(getId()+"failVoltage")->setDefaultText((String)failVoltageThreshold);
 }
 
 
@@ -271,7 +269,7 @@ void VoltageTest::startTestCallback(int user)
 String VoltageTest::getSettings()
 {
 	char returnStr[200];
-	sprintf(returnStr,"Minimum open-circuit voltage before failure: %.2fV", failVoltageThreshold);
+	sprintf(returnStr,"Minimum open-circuit vtg. before failure: %.2fV", failVoltageThreshold);
 	return getSchedulingSettings()+String(returnStr);
 }
 

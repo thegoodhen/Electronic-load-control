@@ -4,7 +4,8 @@
 #include "parserUtils.h"
 
 #define PHASE_PREPARATION 0
-#define PHASE_LOADING 1
+#define PHASE_TRANSIENT 1
+#define PHASE_LOADING 2
 
 
 class DischargeTest:public BatteryTest
@@ -41,8 +42,10 @@ private:
 
 	float minCapacity = 30;
 	float extractedEnergy = 0;
+	float extractedCapacity = 0;
 	float batteryCapacity = 0;
 
 	float currentI;//current as in immediate, might wanna relabel that...
 	float currentU;//current as in immediate, might wanna relabel that...
+	float initialU;//settled voltage after transient, before any significant discharge
 };
