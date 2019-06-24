@@ -4,7 +4,8 @@
 #include "Communicator.h"
 #include <functional>
 
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
+#include "SerialManager.h"
 
  using namespace std::placeholders; 
 
@@ -302,7 +303,7 @@ void Communicator::saveSettingsToSpiffs()
 	root["targetAddr"] = config.targetAddr;
 	root["phoneNumber"] = config.phoneNumber;
 	root["portNumber"] = config.portNumber;
-	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+	SpiffsManager::saveSettings(root, fname);
 }
 
 void Communicator::loadSettingsFromSpiffs()
@@ -310,7 +311,7 @@ void Communicator::loadSettingsFromSpiffs()
 
 	StaticJsonBuffer<1000> jb;
 	StaticJsonBuffer<1000> *jbPtr = &jb;
-	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, "comm.cfg");
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, "comm.cfg");
 	if (root["success"] == false)
 	{
 		Serial.println("ajta, failnulo to...");
@@ -324,8 +325,8 @@ void Communicator::loadSettingsFromSpiffs()
 
 
 
-	Serial.println("smtp server info loaded:");
-	Serial.println(config.smtpServer);
+	SerialManager::debugPrintln("smtp server info loaded:");
+	SerialManager::debugPrintln(config.smtpServer);
 
 	config.portNumber = root["portNumber"];
 
@@ -348,7 +349,6 @@ void Communicator::loadSettingsFromSpiffs()
 
 	/*
 	GUI* gui = this->cont->getGUI();
-
 	gui->find("tiSMTPServer")->setDefaultText(config.smtpServer);
 	gui->find("tiPort")->setDefaultText((String)config.portNumber);
 	gui->find("tiSourceAddr")->setDefaultText((String)config.sourceAddr);

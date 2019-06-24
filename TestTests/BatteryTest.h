@@ -5,7 +5,7 @@
 #include <TimeLib.h>
 #include "ElectronicLoad.h"
 #include "Communicator.h"
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
 #include "Container.h"
 #include "Arduino.h"
 
@@ -97,10 +97,6 @@ protected:
 
 	void generateSchedulingGUI(Container * c, String prefix);
 
-	boolean isDateValid(String theDate);
-
-
-	boolean isPeriodValid(String thePeriod);
 
 	void saveSchSettingsCallback(int user);
 	void saveSchSettingsToSpiffs();
@@ -125,7 +121,6 @@ protected:
 	
 	double lastMeasuredU;
 	double lastMeasuredI;
-	String dateToString(time_t _theDate);
 	String getGenericLastTestInfo();
 
 	Battery* bat;

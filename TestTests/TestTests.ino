@@ -7,7 +7,7 @@
 
  #include "Battery.h"
 #include "TestScheduler.h"
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
 #include "parserUtils.h"
 #include "Communicator.h"
 #include "TestScheduler.h"
@@ -71,9 +71,9 @@ void setup()
   Serial.begin(9600);
   while (!Serial) ; // Needed for Leonardo only
   delay(250);
-  Serial.println("TimeNTP Example");
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+  SerialManager::debugPrintln("TimeNTP Example");
+  SerialManager::debugPrint("Connecting to ");
+  SerialManager::debugPrintln(ssid);
 
   WiFi.begin();
   //WiFi.begin(ssid, pass);
@@ -81,14 +81,14 @@ void setup()
   unsigned long startMillis = millis();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    SerialManager::debugPrint(".");
 	if (millis() - startMillis > 5000)
 	{
 		break;
 	}
   }
 
-  SpiffsPersistentSettingsUtils::begin();
+  SpiffsManager::begin();
 
   comm = new Communicator(wfc, "smtp.seznam.cz", "batterymanagement@email.cz", "BMS2019", "dsibrava@seznam.cz", 25, 0);
   ts = new TestScheduler();
@@ -115,11 +115,11 @@ void setup()
   //JsonObject& obj = jb.createObject();
   //obj["slepice"] = 3;
 
-  //SpiffsPersistentSettingsUtils::saveSettings(obj, "slepice.txt");
-  //JsonObject& obj2 = SpiffsPersistentSettingsUtils::loadSettings("slepice.txt");
+  //SpiffsManager::saveSettings(obj, "slepice.txt");
+  //JsonObject& obj2 = SpiffsManager::loadSettings("slepice.txt");
   //int s = obj2["slepice"];
-  //Serial.println("Ted to ma vypsat tu trojku...");
-  //Serial.println(s);
+  //SerialManager::debugPrintln("Ted to ma vypsat tu trojku...");
+  //SerialManager::debugPrintln(s);
 
   NTPManager::begin();
   initGUI();
@@ -145,7 +145,7 @@ void initGUI()
 
 	
 
-	//Serial.println("koko");
+	//SerialManager::debugPrintln("koko");
 	//delay(500);
 
 
@@ -164,22 +164,6 @@ void initGUI()
 
 
 
-void buttonCB(int user)
-{
-	USE_SERIAL.println("User clicked the button! User number: ");
-	USE_SERIAL.println(user);
-	USE_SERIAL.println("First text input:");
-	USE_SERIAL.println(gui.find("ti1")->retrieveText(user));
-	USE_SERIAL.println("Second text input:");
-	USE_SERIAL.println(gui.find("ti2")->retrieveText(user));
-	USE_SERIAL.println("Checkbox:");
-	USE_SERIAL.println(gui.find("cb1")->retrieveIntValue(user));
-	USE_SERIAL.println("Slider:");
-	USE_SERIAL.println(gui.find("sl1")->retrieveIntValue(user));
-	USE_SERIAL.println("ListBox");
-	USE_SERIAL.println(gui.find("lb1")->retrieveText(user));
-	USE_SERIAL.println(gui.find("lb1")->retrieveIntValue(user));
-}
 
 time_t prevDisplay = 0; // when the digital clock was displayed
 
@@ -209,24 +193,24 @@ void loop()
 void digitalClockDisplay()
 {
   // digital clock display of the time
-  Serial.print(hour());
+  SerialManager::debugPrint(hour());
   printDigits(minute());
   printDigits(second());
-  Serial.print(" ");
-  Serial.print(day());
-  Serial.print(".");
-  Serial.print(month());
-  Serial.print(".");
-  Serial.print(year());
-  Serial.println();
+  SerialManager::debugPrint(" ");
+  SerialManager::debugPrint(day());
+  SerialManager::debugPrint(".");
+  SerialManager::debugPrint(month());
+  SerialManager::debugPrint(".");
+  SerialManager::debugPrint(year());
+  SerialManager::debugPrintln("");
 }
 
 void printDigits(int digits)
 {
   // utility for digital clock display: prints preceding colon and leading 0
-  Serial.print(":");
+  SerialManager::debugPrint(":");
   if (digits < 10)
-    Serial.print('0');
-  Serial.print(digits);
+    SerialManager::debugPrint('0');
+  SerialManager::debugPrint(digits);
 }
 

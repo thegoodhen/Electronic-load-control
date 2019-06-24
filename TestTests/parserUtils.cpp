@@ -3,6 +3,7 @@
 // 
 
 #include "parserUtils.h"
+#include "SerialManager.h"
 
 /**
 
@@ -38,7 +39,7 @@ int parserUtils::retrieveNLongs(const char * str, int n, long* outArr)
 	{
 
 		outArr[i] = strtol(endptr, &endptr, 10);
-		Serial.println(endptr);
+		SerialManager::debugPrintln(endptr);
 		if (endptr == str2)//no number in the input
 		{
 			return 0;

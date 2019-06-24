@@ -30,7 +30,7 @@ void BatteryTest::setFirstScheduledStartTime(int day, int month, int year, int h
 	tmElements_t startDateElems = { 0,min,hour,1, day,month,year};
 	this->firstScheduledStartTime = makeTime(startDateElems);
 	this->scheduledStartTime = this->firstScheduledStartTime;
-	Serial.println("scheduled start time set...");
+	SerialManager::debugPrintln("scheduled start time set...");
 }
 
 void BatteryTest::setSchedulingPeriod(int days, int hours, int minutes)
@@ -73,13 +73,6 @@ void BatteryTest::beginTest(boolean scheduled)
 
 	if (scheduled)
 	{
-		Serial.println("prev start time");
-		Serial.println(this->scheduledStartTime);
-		Serial.println("new start time");
-		Serial.println(this->scheduledStartTime+this->period);
-		Serial.println("the period");
-		Serial.println(period);
-		
 		fastForwardScheduling();
 
 	}
@@ -142,7 +135,7 @@ void BatteryTest::endTest(int endMode)
 		{
 			sendEmailReport();
 		}
-		Serial.println("end of test");
+		SerialManager::debugPrintln("end of test");
 		if (canRunAutomatically)
 		{
 			state = STATE_SCHEDULED;
@@ -157,8 +150,8 @@ void BatteryTest::endTest(int endMode)
 	SerialManager::sendToOutputln("TEST FINISHED. RESULTS:");
 	printResultsToSerial();
 
-	//Serial.println((unsigned long)this->scheduler);
-	//Serial.println(textResults);
+	//SerialManager::debugPrintln((unsigned long)this->scheduler);
+	//SerialManager::debugPrintln(textResults);
 
 }
 
@@ -207,7 +200,6 @@ int BatteryTest::sendEmailReport()
 		comm->printText(this->getTextResults());
 		comm->exit();
 		
-		//Serial.println(getTextResults());
 	return 0;
 	
 }
@@ -276,7 +268,6 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	{
 
 		GUI* gui = this->cont->getGUI();
-		Serial.println("Saving scheduling settings");
 
 		
 		String firstRun = gui->find((String)prefix+ "tifr")->retrieveText(user);
@@ -320,14 +311,14 @@ void BatteryTest::generateSchedulingGUI(Container* c, String _prefix)
 	
 void BatteryTest::saveSchSettingsToSpiffs()
 {
-	Serial.println("ten prefix je:");
-		Serial.println(this->getId());
+	SerialManager::debugPrint("ten prefix je: ");
+	SerialManager::debugPrintln(this->getId());
 
 		char fname[50];
 		sprintf(fname, "%s_sch.cfg", this->getId().c_str());
 
 	//char* fname = (char*)((String)prefix+".cfg").c_str();
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
 	StaticJsonBuffer<350> jsonBuffer;
 
@@ -342,13 +333,13 @@ void BatteryTest::saveSchSettingsToSpiffs()
 	root["autorun"] = config.autorun;
 
 	parseLoadedSettings();//this will actually apply the settings...
-	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+	SpiffsManager::saveSettings(root, fname);
 }
 
 void BatteryTest::loadSchSettingsFromSpiffs()
 {
 
-	Serial.println("nacitam nastaveni...");
+	SerialManager::debugPrintln("nacitam nastaveni...");
 	StaticJsonBuffer<1000> jb;
 	StaticJsonBuffer<1000> *jbPtr = &jb;
 
@@ -356,15 +347,15 @@ void BatteryTest::loadSchSettingsFromSpiffs()
 
 	char fname[50];
 	sprintf(fname, "%s_sch.cfg", this->getId().c_str());
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
-	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, fname);
 	if (root["success"] == false)
 	{
-		Serial.println("failnulo to nacitani toho testu...");
+		SerialManager::debugPrintln("failnulo to nacitani toho testu...");
 	return;
 	}
-	Serial.println("nacetlo se nastaveni...");
+	SerialManager::debugPrintln("nacetlo se nastaveni...");
 
 	strlcpy(config.firstRun,                   // <- destination
 		root["firstRun"],
@@ -400,20 +391,11 @@ void BatteryTest::parseLoadedSettings()
 	this->emailReport = config.mailSettings;
 }
 
-String BatteryTest::dateToString(time_t _theDate)
-{
-	char returnString[40];
-	sprintf(returnString, "%d.%d. %d %d:%d:%d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
-	Serial.println("returnString");
-	Serial.println(returnString);
-	return (String)returnString;
-	
-}
 
 String BatteryTest::getGenericLastTestInfo()
 {
-	return "\r\n"+(String)getName()+ " results: \r\n-----------------------\r\n<br>start:\t\t" + this->dateToString(this->lastRunStart) + "<br>\r\n"
-		+ "end:\t\t" + this->dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\r\n" +
+	return "\r\n"+(String)getName()+ " results: \r\n-----------------------\r\n<br>start:\t\t" + NTPManager::dateToString(this->lastRunStart) + "<br>\r\n"
+		+ "end:\t\t" + NTPManager::dateToString(this->lastRunStart + this->lastRunDuration) + "<br>\r\n" +
 		"status:\t\t" + ((!this->testFailed)?"PASSED<br>\r\n":"<span style=\"color:#FF0000;\">FAILED</span><br>\r\n");
 }
 void BatteryTest::setScheduler(TestScheduler* _sch)

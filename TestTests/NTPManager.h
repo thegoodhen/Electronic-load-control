@@ -5,7 +5,7 @@
 #include <TimeLib.h>
 #include "ElectronicLoad.h"
 #include "Communicator.h"
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
 #include "Container.h"
 #include "Arduino.h"
 

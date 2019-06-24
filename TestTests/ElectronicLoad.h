@@ -26,6 +26,7 @@ protected:
 	static float I;
 	static float U1;
 	static float U2;
+	static float updatePeriod;
 public:
 	static int connectedBattery;
 	static int setI(float theI);

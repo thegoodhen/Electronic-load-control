@@ -66,7 +66,7 @@ void Battery::updateProperthies(double _OCV, double _Ri, double _c)
 
 	char fName[50];
 	sprintf(fName, "b%d.data", this->batteryNo);
-	SpiffsPersistentSettingsUtils::appendLineTo(fName, (char* )(lineStr.c_str()));
+	SpiffsManager::appendLineTo(fName, (char* )(lineStr.c_str()));
 }
 
 
@@ -76,7 +76,33 @@ void Battery::printProperthies()
 	sprintf(tempStr, "Open-circuit voltage:\t\t%.2fV \t\t(%s)\r\nInternal resistance: \t\t%.2fOhms \t(%s) \r\nCapacity: \t\t\t%.2fAh \t\t(%s) \r\n", OCV,NTPManager::dateToString(OCVDate).c_str(), Ri,
 		NTPManager::dateToString(RiDate).c_str(), c, NTPManager::dateToString(cDate).c_str());
 
-	SerialManager::sendToOutputln(tempStr);
+	if (OCV > 0)
+	{
+		SerialManager::sendToOutputln("Open-circuit voltage: \t\t" + String(OCV, 3) + "V\t\t("+NTPManager::dateToString(this->OCVDate)+")");
+	}
+	else
+	{
+		SerialManager::sendToOutputln("Open-circuit voltage: \t\t (not measured yet)");
+	}
+
+	if (Ri> 0)
+	{
+		SerialManager::sendToOutputln("Internal resistance: \t\t" + String(Ri, 3) + "Ohms\t\t("+NTPManager::dateToString(this->RiDate)+")");
+	}
+	else
+	{
+		SerialManager::sendToOutputln("Internal resistance: \t\t (not measured yet)");
+	}
+
+	if (c>0)
+	{
+		SerialManager::sendToOutputln("Capacity: \t\t" + String(c, 3) + "Ah\t\t("+NTPManager::dateToString(this->cDate)+")");
+	}
+	else
+	{
+		SerialManager::sendToOutputln("Capacity: \t\t (not measured yet)");
+	}
+
 }
 
 

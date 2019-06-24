@@ -5,7 +5,7 @@
 #include "SerialManager.h"
 #include <functional>
 
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include "BatteryTest.h"
@@ -13,14 +13,15 @@
 
  using namespace std::placeholders; 
  //void SerialManager::help(char** params, int argCount);
- SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{scanWiFi, "SCANWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"},{getOptions,"GETOPTIONS"}, {resetStatus, "RESETSTATUS"}, {history,"HISTORY"}, {enableTelnet, "ENABLETELNET"},{disableTelnet,"DISABLETELNET"}, {format,"FORMAT"},{batteryHistory, "BATTERYHISTORY"},{enableAuto, "ENABLEAUTO"} ,{disableAuto,"DISABLEAUTO"} };
+ SerialManager::command SerialManager::cmds[] = { {help, "HELP"}, {startTest,"STARTTEST"}, {stopTest,"STOPTEST"}, {connectWiFi, "CONNECTWIFI" }, {disconnectWiFi,"DISCONNECTWIFI"},{scanWiFi, "SCANWIFI"},{lastResult,"LASTRESULT"},{schedule,"SCHEDULE"},{timeSet,"SETTIME"},{status, "STATUS"}, {configureEmail,"CONFIGUREEMAIL"},{testEmail,"TESTEMAIL"}, {setOptions, "SETOPTIONS"},{getOptions,"GETOPTIONS"}, {resetStatus, "RESETSTATUS"}, {history,"HISTORY"}, {enableTelnet, "ENABLETELNET"},{disableTelnet,"DISABLETELNET"}, {format,"FORMAT"},{batteryHistory, "BATTERYHISTORY"},{enableAuto, "ENABLEAUTO"} ,{disableAuto,"DISABLEAUTO"},{enableDebug, "ENABLEDEBUG"},{disableDebug, "DISABLEDEBUG"} };
  TestScheduler* SerialManager::ts;
  Communicator * SerialManager::comm;
 //how many clients should be able to telnet to this ESP8266
 WiFiServer SerialManager::server(23);
 WiFiClient SerialManager::serverClients[MAX_SRV_CLIENTS];
-boolean SerialManager::telnetEnabled = true;
 unsigned long SerialManager::lastInputMillis = 0;
+
+SerialManager::Config SerialManager::config;
 
 
 
@@ -99,7 +100,7 @@ void SerialManager::help(char** params, int argCount)
 
 void SerialManager::connectWiFi(char** params, int argCount)
 {
-	if (argCount > 2 )
+	if (argCount > 2)
 	{
 		sendToOutputln("Incorrect usage. Correct usage:");
 		showHelp("CONNECTWIFI");
@@ -107,7 +108,7 @@ void SerialManager::connectWiFi(char** params, int argCount)
 	WiFi.disconnect();
 	if (argCount == 0)
 	{
-		WiFi.begin();
+		connectToDefaultWiFi();
 	}
 	if (argCount == 1)
 	{
@@ -119,18 +120,40 @@ void SerialManager::connectWiFi(char** params, int argCount)
 	}
 	unsigned long startMillis = millis();
 
-	while (WiFi.status() != WL_CONNECTED) 
+	while (WiFi.status() != WL_CONNECTED)
 	{
-	sendToOutputln("connecting...");
-	delay(1000);
-	if (millis() - startMillis > 10000)
-	{
-		sendToOutputln("Unable to connect! Aborting.");
-		return;
+		sendToOutputln("connecting...");
+		delay(1000);
+		if (millis() - startMillis > 10000)
+		{
+			sendToOutputln("Unable to connect! Aborting.");
+			connectToDefaultWiFi();
+			return;
+		}
 	}
-	}
-	Serial.print("Connected to: ");
+	SerialManager::debugPrint("Connected to: ");
 	sendToOutputln(WiFi.SSID());
+}
+
+void SerialManager::connectToDefaultWiFi()
+{
+	sendToOutput("Connecting to a default WiFi network: ");
+	sendToOutputln(config.SSID);
+	WiFi.begin(config.SSID, config.pass);
+
+	unsigned long startMillis = millis();
+
+	while (WiFi.status() != WL_CONNECTED)
+	{
+		sendToOutputln("connecting...");
+		delay(1000);
+		if (millis() - startMillis > 10000)
+		{
+			sendToOutputln("Unable to connect! Aborting.");
+			return;
+		}
+
+	}
 }
 
 void SerialManager::disconnectWiFi(char** params, int argCount)
@@ -231,7 +254,6 @@ void SerialManager::schedule(char** params, int argCount)
 
 void SerialManager::history(char** params, int argCount)
 {
-	Serial.println(argCount);
 	if (argCount != 2)
 	{
 		sendToOutputln("Incorrect usage. Correct usage:");
@@ -492,7 +514,11 @@ void SerialManager::enableTelnet(char** params, int argCount)
 		return;
 	}
 
-	telnetEnabled = true;
+	config.telnetEnabled = true;
+	
+	 server.begin();
+
+	saveSchSettingsToSpiffs();
 
 	if (!WiFi.isConnected())
 	{
@@ -500,8 +526,8 @@ void SerialManager::enableTelnet(char** params, int argCount)
 	}
 	else
 	{
-		Serial.print("Ready! Use 'telnet ");
-		Serial.print(WiFi.localIP());
+		SerialManager::sendToOutput("Ready! Use 'telnet ");
+		SerialManager::sendToOutput(WiFi.localIP().toString());
 		sendToOutputln(" 23' to connect");
 	}
 }
@@ -509,12 +535,6 @@ void SerialManager::enableTelnet(char** params, int argCount)
 
 void SerialManager::disableTelnet(char** params, int argCount)
 {
-	if (argCount != 0)
-	{
-		sendToOutputln("Incorrect usage. Correct usage:");
-		showHelp("DISABLETELNET");
-		return;
-	}
 
 	if (telnetClientsOnline())
 	{
@@ -529,26 +549,39 @@ void SerialManager::disableTelnet(char** params, int argCount)
 			return;
 		}
 	}
-	telnetEnabled = false;
+	config.telnetEnabled = false;
+
+	WiFiClient serverClient = server.available();
+	serverClient.stop();
+	server.stop();
+
+	saveSchSettingsToSpiffs();
 	sendToOutputln("Telnet disabled.");
 }
 
 void SerialManager::format(char** params, int argCount)
 {
-	if (argCount != 0)
+	if (argCount == 1 && strcmp(params[0], "ALL"))
 	{
-		sendToOutputln("Incorrect usage. Correct usage:");
-		showHelp("FORMAT");
+		if (SPIFFS.format())
+		{
+			sendToOutputln("Spiffs formatted succesfully.");
+			return;
+		}
+		else
+		{
+			sendToOutputln("Failed to format SPIFFS.");
+			return;
+		}
+	}
+	if (argCount == 0)
+	{
+		SpiffsManager::deleteData();
 		return;
 	}
-	if (SPIFFS.format())
-	{
-		sendToOutputln("Spiffs formatted succesfully.");
-	}
-	else
-	{
-		sendToOutputln("Failed to format SPIFFS.");
-	}
+	sendToOutputln("Incorrect usage. Correct usage:");
+	showHelp("FORMAT");
+	return;
 }
 
 
@@ -633,6 +666,38 @@ void SerialManager::disableAuto(char** params, int argCount)
 	bt->disableAutorun();
 }
 
+
+
+void SerialManager::enableDebug(char** params, int argCount)
+{
+
+	if (argCount != 0)
+	{
+
+		sendToOutputln("Incorrect usage. Correct usage:");
+		showHelp("ENABLEDEBUG");
+		return;
+	}
+	config.debugEnabled = true;
+	saveSchSettingsToSpiffs();
+}
+
+
+void SerialManager::disableDebug(char** params, int argCount)
+{
+
+	if (argCount != 0)
+	{
+
+		sendToOutputln("Incorrect usage. Correct usage:");
+		showHelp("ENABLEDEBUG");
+		return;
+	}
+	config.debugEnabled = false;
+	saveSchSettingsToSpiffs();
+}
+
+
 int SerialManager :: getBatteryNo(char* input)
 {
   float outArg;
@@ -674,9 +739,18 @@ int SerialManager::getTestType(char* theName)
 	 server.begin();
 	 server.setNoDelay(true);
 
-	 Serial.print("Ready! Use 'telnet ");
-	 Serial.print(WiFi.localIP());
+	 SerialManager::debugPrint("Ready! Use 'telnet ");
+	 SerialManager::debugPrint(WiFi.localIP());
 	 sendToOutputln(" 23' to connect");
+	 loadSchSettingsFromSpiffs();
+	 if (config.telnetEnabled)
+	 {
+		 enableTelnet(0, 0);
+	 }
+	 else
+	 {
+		 disableTelnet(0, 0);
+	 }
  }
 
  int SerialManager::readAvailableInput()
@@ -685,6 +759,11 @@ int SerialManager::getTestType(char* theName)
 	 {
 		 lastInputMillis = millis();
 		 return Serial.read();
+	 }
+
+	 if (!config.telnetEnabled)
+	 {
+		 return -1;
 	 }
 	 //check clients for data
 	 for (int i = 0; i < MAX_SRV_CLIENTS; i++) {
@@ -751,9 +830,9 @@ int SerialManager::getTestType(char* theName)
 		 dataIn[index++] = inChar;
 		 if (inChar == '\n') {
 			 dataIn[index - 1] = '\0';
-			 Serial.print("Got this: \"");
-			 Serial.print(dataIn);
-			 Serial.println("\"");
+			 SerialManager::debugPrint("Got this: \"");
+			 SerialManager::debugPrint(dataIn);
+			 SerialManager::debugPrintln("\"");
 			 index = 0;
 
 			 sendToOutputln("============================================");
@@ -769,32 +848,66 @@ int SerialManager::getTestType(char* theName)
  {
 	 Serial.print(str);
 	 
+	 if (!config.telnetEnabled)
+	 {
+		 return;
+	 }
     for(int i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()){
         serverClients[i].write(str.c_str(), strlen(str.c_str()));
-        delay(1);
       }
     }
+	ElectronicLoad::heartBeat();//so it doesn't crash with long outputs...
  }
 
  void SerialManager::sendToOutput(char ch)
  {
 	 Serial.write(ch);
 
+	 if (!config.telnetEnabled)
+	 {
+		 return;
+	 }
+
     for(int i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()){
 		  char tempStr[1];
 		  tempStr[0] = ch;
         serverClients[i].write(tempStr,1);
-        delay(1);
       }
     }
+	ElectronicLoad::heartBeat();//so it doesn't crash with long outputs...
  }
 
  void SerialManager::sendToOutputln(String str)
  {
 	 str += "\r\n";
 	 sendToOutput(str);
+ }
+
+
+ void SerialManager::debugPrint(char ch)
+ {
+	 if (config.debugEnabled)
+	 {
+		 sendToOutput(ch);
+	 }
+ }
+
+ void SerialManager::debugPrint(String str)
+ {
+	 if (config.debugEnabled)
+	 {
+		 sendToOutput(str);
+	 }
+ }
+
+ void SerialManager::debugPrintln(String str)
+ {
+	 if (config.debugEnabled)
+	 {
+		 sendToOutputln(str);
+	 }
  }
 
 void SerialManager::loop()
@@ -882,8 +995,8 @@ int SerialManager::getArgsCount(char** arguments)
 
 int SerialManager::getFunctionIndex(char* theName)
 {
-  //Serial.println(cmds[0].commandString);
-  //Serial.println(strcmp_P("LIST",cmds[0].commandString));
+  //SerialManager::debugPrintln(cmds[0].commandString);
+  //SerialManager::debugPrintln(strcmp_P("LIST",cmds[0].commandString));
   for (int i = 0; i < CMDS_COUNT; i++)
   {
     if (strcmp(theName, cmds[i].commandString) == 0)
@@ -1013,7 +1126,7 @@ void SerialManager::showHelp(char* topic)
 
 	if (strcmp(topic, "FORMAT") == 0)
 	{
-		sendToOutputln(F("FORMAT (no arguments) - format the SPIFFS memory, deleting all historical data and settings, reverting to factory defaults."));
+		sendToOutputln(F("FORMAT (optionally FORMAT|ALL) - format the SPIFFS memory, deleting all historical data. If FORMAT|ALL is used, the memory is formatted, which also deletes all settings, reverting to factory defaults."));
 	}
 
 	if (strcmp(topic, "BATTERYHISTORY") == 0)
@@ -1104,3 +1217,62 @@ boolean SerialManager::telnetClientsOnline()
 	return false;
 }
 
+
+void SerialManager::saveSchSettingsToSpiffs()
+{
+	char fname[50];
+	sprintf(fname, "%s.cfg", "comms");
+
+	//char* fname = (char*)((String)prefix+".cfg").c_str();
+	SerialManager::debugPrintln(fname);
+
+	StaticJsonBuffer<350> jsonBuffer;
+
+	// Parse the root object
+	JsonObject &root = jsonBuffer.createObject();
+
+	// Set the values
+	root["telnetEnabled"] = config.telnetEnabled;
+	root["debugEnabled"] = config.debugEnabled;
+	root["SSID"] = config.SSID;
+	root["pass"] = config.pass;
+
+	SpiffsManager::saveSettings(root, fname);
+}
+
+void SerialManager::loadSchSettingsFromSpiffs()
+{
+
+	SerialManager::debugPrintln("nacitam nastaveni...");
+	StaticJsonBuffer<1000> jb;
+	StaticJsonBuffer<1000> *jbPtr = &jb;
+
+
+
+	char fname[50];
+	sprintf(fname, "%s.cfg", "comms");
+	SerialManager::debugPrintln(fname);
+
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, fname);
+	if (root["success"] == false)
+	{
+		SerialManager::debugPrintln("failnulo to nacitani nastaveni komunikace...");
+	return;
+	}
+	SerialManager::debugPrintln("nacetlo se nastaveni komunikace...");
+
+
+	config.telnetEnabled = root["telnetEnabled"];
+	config.debugEnabled = root["debugEnabled"];
+
+	strlcpy(config.SSID,                   // <- destination
+		root["SSID"],
+		sizeof(config.SSID));
+
+	strlcpy(config.pass,                   // <- destination
+		root["pass"],
+		sizeof(config.pass));
+
+
+	//gui->find((String)prefix+"lbMail")->setDefaultText(config.mailSettings);
+}

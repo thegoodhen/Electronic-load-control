@@ -1,6 +1,7 @@
 
 #include "TestScheduler.h"
 #include "BatteryTest.h"
+#include "SerialManager.h"
 
 std::vector<BatteryTest*> TestScheduler::getTests()
 {
@@ -32,7 +33,7 @@ void TestScheduler::handle()
 			{
 				if (now() - bt->getScheduledStartTime() > 30)//we have missed the last run (for example because the device was off)
 				{
-					Serial.println("fastforwarding now...");
+					SerialManager::debugPrintln("fastforwarding now...");
 					bt->fastForwardScheduling();
 					return;
 				}
@@ -72,7 +73,7 @@ void TestScheduler::notifyAboutTestEnd(int endMode)
 	{
 		this->status = 1;
 	}
-	Serial.println("SCHEDULER KNOWS: TEST END!");
+	SerialManager::debugPrintln("SCHEDULER KNOWS: TEST END!");
 	if (this->currentTest->getBatteryNo() == 1)
 	{
 		this->lastTestBat1 = currentTest;

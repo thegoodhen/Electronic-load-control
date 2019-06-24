@@ -13,11 +13,7 @@ FastTest::FastTest(int _batteryNo, TestScheduler* ts, Communicator* comm, boolea
 	tmElements_t startDateElems = { 0,firstRunMinute,firstRunHour,1, firstRunDay,firstRunMonth,firstRunYear };
 	this->firstScheduledStartTime = makeTime(startDateElems);
 	this->scheduledStartTime = this->firstScheduledStartTime;
-	Serial.println(year(firstScheduledStartTime));
-	Serial.println(month(firstScheduledStartTime));
-	Serial.println(day(firstScheduledStartTime));
-	Serial.println(hour(firstScheduledStartTime));
-	Serial.println(minute(firstScheduledStartTime));
+
 
 	this->firstScheduledStartTime = makeTime(startDateElems);
 	this->state = STATE_SCHEDULED;
@@ -65,10 +61,10 @@ void FastTest::handle()
 	{
 		if (now() > this->scheduledStartTime)
 		{
-			Serial.println("now");
-			Serial.println(now());
-			Serial.println("then");
-			Serial.println(this->scheduledStartTime);
+			SerialManager::debugPrintln("now");
+			SerialManager::debugPrintln(now());
+			SerialManager::debugPrintln("then");
+			SerialManager::debugPrintln(this->scheduledStartTime);
 			beginTest(true);
 		}
 	}
@@ -78,7 +74,7 @@ void FastTest::handle()
 		static int it;
 		if (phase == PHASE_PREPARATION)
 		{
-			Serial.println("entering the loading phase...");
+			SerialManager::debugPrintln("entering the loading phase...");
 			//Chart* ch = (Chart*)cont->getGUI()->find(getId()+"chLastTestData");
 			//ch->clear();
 			//TODO: handle errors
@@ -105,7 +101,7 @@ void FastTest::handle()
 			{
 				this->voltageWhenLoaded= this->lastMeasuredU;
 				this->currentWhenLoaded = this->lastMeasuredI;
-				Serial.println("entering the recovery phase...");
+				SerialManager::debugPrintln("entering the recovery phase...");
 				failOnError(ElectronicLoad::connectBattery(0));
 				phase = PHASE_RECOVERY;
 				return;
@@ -156,9 +152,9 @@ void FastTest::reportResultsOnGUI()
 	Text* t = (Text*)cont->getGUI()->find(this->getId() + "lastResults");
 	delay(500);
 	t->setDefaultText(this->getTextResults());
-	//Serial.println("getTextResults()");
-	//Serial.println(strlen(getTextResults()));
-	//Serial.println(getTextResults());
+	//SerialManager::debugPrintln("getTextResults()");
+	//SerialManager::debugPrintln(strlen(getTextResults()));
+	//SerialManager::debugPrintln(getTextResults());
 
 	//t->setText(ALL_CLIENTS, getTextResults());
     //t->setText(ALL_CLIENTS, (String)""+getTextResults());
@@ -219,14 +215,14 @@ void FastTest::generateGUI(Container * c)
 
 void FastTest::saveSettingsToSpiffs()
 {
-	//Serial.println("ten prefix je:");
-		//Serial.println(prefix);
+	//SerialManager::debugPrintln("ten prefix je:");
+		//SerialManager::debugPrintln(prefix);
 
 	char fname[50];
 	sprintf(fname, "%s.cfg", getId().c_str());
 
 	//char* fname = (char*)((String)prefix+".cfg").c_str();
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
 	StaticJsonBuffer<50> jsonBuffer;
 
@@ -235,13 +231,13 @@ void FastTest::saveSettingsToSpiffs()
 
 	// Set the values
 	root["maxRi"] = maxRiBeforeFail;
-	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+	SpiffsManager::saveSettings(root, fname);
 }
 
 void FastTest::loadSettingsFromSpiffs()
 {
 
-	Serial.println("nacitam nastaveni...");
+	SerialManager::debugPrintln("nacitam nastaveni...");
 	StaticJsonBuffer<1000> jb;
 	StaticJsonBuffer<1000> *jbPtr = &jb;
 
@@ -249,18 +245,18 @@ void FastTest::loadSettingsFromSpiffs()
 
 	char fname[50];
 	sprintf(fname, "%s.cfg", getId().c_str());
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
-	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, fname);
 	if (root["success"] == false)
 	{
-		Serial.println("failnulo to nacitani konkretniho nastaveni toho testu...");
+		SerialManager::debugPrintln("failnulo to nacitani konkretniho nastaveni toho testu...");
 	return;
 	}
-	Serial.println("nacetlo se konkretni nastaveni...");
+	SerialManager::debugPrintln("nacetlo se konkretni nastaveni...");
 
 	maxRiBeforeFail = root["maxRi"];
-	Serial.println("slepice");
+	SerialManager::debugPrintln("slepice");
 
 
 
@@ -277,7 +273,7 @@ void FastTest::saveResults()
 
 	char fname[50];
     sprintf(fname, "%s.data", getId().c_str());
-	SpiffsPersistentSettingsUtils::appendLineTo(fname, theLine);
+	SpiffsManager::appendLineTo(fname, theLine);
 }
 
 
@@ -332,11 +328,11 @@ String FastTest::getId()
 /*
 void FastTest::startTestCallback(int user)
 {
-	USE_SERIAL.println("starting test, weeeeeee");
+	USE_SerialManager::debugPrintln("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 	//String s = gui->find("tiLoadCurrent")->retrieveText(user);
-	//USE_SERIAL.println("s");
-	//USE_SERIAL.println(s);
+	//USE_SerialManager::debugPrintln("s");
+	//USE_SerialManager::debugPrintln(s);
 	//float loadCurrent;
 	//parserUtils::retrieveFloat(s.c_str(), &loadCurrent);
 
@@ -350,17 +346,16 @@ void FastTest::startTestCallback(int user)
 
 void FastTest::startTestCallback(int user)
 {
-	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 
 	if (this->state == STATE_RUNNING)
 	{
-		Serial.println("stopping");
+		SerialManager::debugPrintln("stopping");
 		processRequestToStopTest(user);
 	}
 	else
 	{
-		Serial.println("beginning");
+		SerialManager::debugPrintln("beginning");
 		beginTest(false);
 	}
 

@@ -5,7 +5,7 @@
 #include "StatusDisplay.h"
 #include <functional>
 
-#include "SpiffsPersistentSettingsUtils.h"
+#include "SpiffsManager.h"
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include "BatteryTest.h"
@@ -45,7 +45,7 @@ void StatusDisplay::loop()
 	BatteryTest* lastTestB2 = ts->getLastTest(2);
 	if (lastTestB1 != NULL)
 	{
-		//Serial.println(lastTestB1->getTextResults());
+		//SerialManager::debugPrintln(lastTestB1->getTextResults());
 		b1t->setText(ALL_CLIENTS, lastTestB1->getTextResults());
 	}
 	/*

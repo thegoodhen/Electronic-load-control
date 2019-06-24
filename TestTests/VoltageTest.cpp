@@ -69,7 +69,7 @@ void VoltageTest::handle()
 			currentMeasurmentNumber = 0;
 			voltageSum = 0;
 			failOnError(ElectronicLoad::setUpdatePeriod(updatePeriod));
-			Serial.println("prep phase");
+			SerialManager::debugPrintln("prep phase");
 			phase = PHASE_MEASURING;
 			return;
 		}
@@ -164,14 +164,14 @@ String VoltageTest::getName()
 
 void VoltageTest::saveSettingsToSpiffs()
 {
-	//Serial.println("ten prefix je:");
-		//Serial.println(prefix);
+	//SerialManager::debugPrintln("ten prefix je:");
+		//SerialManager::debugPrintln(prefix);
 
 	char fname[50];
 	sprintf(fname, "%s.cfg", getId().c_str());
 
 	//char* fname = (char*)((String)prefix+".cfg").c_str();
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
 	StaticJsonBuffer<50> jsonBuffer;
 
@@ -180,7 +180,7 @@ void VoltageTest::saveSettingsToSpiffs()
 
 	// Set the values
 	root["minU"] = failVoltageThreshold;
-	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+	SpiffsManager::saveSettings(root, fname);
 }
 
 
@@ -209,7 +209,7 @@ void VoltageTest::saveSettingsCallback(int user)
 void VoltageTest::loadSettingsFromSpiffs()
 {
 
-	Serial.println("nacitam nastaveni...");
+	SerialManager::debugPrintln("nacitam nastaveni...");
 	StaticJsonBuffer<1000> jb;
 	StaticJsonBuffer<1000> *jbPtr = &jb;
 
@@ -217,15 +217,15 @@ void VoltageTest::loadSettingsFromSpiffs()
 
 		char fname[50];
 		sprintf(fname, "%s.cfg", getId().c_str());
-	Serial.println(fname);
+	SerialManager::debugPrintln(fname);
 
-	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, fname);
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, fname);
 	if (root["success"] == false)
 	{
-		Serial.println("failnulo to nacitani konkretniho nastaveni toho testu...");
+		SerialManager::debugPrintln("failnulo to nacitani konkretniho nastaveni toho testu...");
 	return;
 	}
-	Serial.println("nacetlo se konkretni nastaveni...");
+	SerialManager::debugPrintln("nacetlo se konkretni nastaveni...");
 
 	failVoltageThreshold= root["minU"];
 }
@@ -245,22 +245,21 @@ void VoltageTest::saveResults()
 
 	char fname[50];
     sprintf(fname, "%s.data", getId().c_str());
-	SpiffsPersistentSettingsUtils::appendLineTo(fname, theLine);
+	SpiffsManager::appendLineTo(fname, theLine);
 }
 
 void VoltageTest::startTestCallback(int user)
 {
-	USE_SERIAL.println("starting test, weeeeeee");
 	GUI* gui = cont->getGUI();
 
 	if (this->state == STATE_RUNNING)
 	{
-		Serial.println("stopping");
+		SerialManager::debugPrintln("stopping");
 		processRequestToStopTest(user);
 	}
 	else
 	{
-		Serial.println("beginning");
+		SerialManager::debugPrintln("beginning");
 		beginTest(false);
 	}
 

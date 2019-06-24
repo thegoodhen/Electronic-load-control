@@ -29,7 +29,6 @@ private:
 	#define MAX_SRV_CLIENTS 1
 	static WiFiServer server;
     static  WiFiClient serverClients[MAX_SRV_CLIENTS];
-	static boolean telnetEnabled;
 	static unsigned long lastInputMillis;
 	char dataIn[400];
 public:
@@ -42,6 +41,9 @@ public:
 	static void sendToOutput(String str);
 	static void sendToOutput(char ch);
 	static void sendToOutputln(String str);
+	static void debugPrint(char ch);
+	static void debugPrint(String str);
+	static void debugPrintln(String str);
 	void loop();
 	void parseCommand(char * str);
 
@@ -63,6 +65,10 @@ static int getMailSettings(char * str);
 
 static boolean telnetClientsOnline();
 
+static void saveSchSettingsToSpiffs();
+
+static void loadSchSettingsFromSpiffs();
+
 
 const char* delimiter = "|";
 
@@ -70,11 +76,21 @@ struct command {
   void (* cmd)(char **, int agrCount);
   const char commandString[20];
 };
+
+	struct Config {
+		boolean telnetEnabled;
+		boolean debugEnabled;
+		char SSID[100];
+		char pass[100];
+	};
+	static Config config;
+
 static void startTest(char** params, int argCount);
 static void stopTest(char ** params, int argCount);
 static void help(char** params, int argCount);
 
 static void connectWiFi(char ** params, int argCount);
+static void connectToDefaultWiFi();
 static void disconnectWiFi(char ** params, int argCount);
 static void scanWiFi(char ** params, int argCount);
 static void lastResult(char ** params, int argCount);
@@ -105,6 +121,9 @@ static void batteryHistory(char ** params, int argCount);
 static void enableAuto(char ** params, int argCount);
 
 static void disableAuto(char ** params, int argCount);
+
+static void enableDebug(char ** params, int argCount);
+static void disableDebug(char ** params, int argCount);
 
 static int getBatteryNo(char * input);
 

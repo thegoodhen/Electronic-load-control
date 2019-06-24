@@ -1,5 +1,7 @@
 #include "ElectronicLoad.h"
 #include "TimeLib.h"
+#include "SerialManager.h"
+
 int ElectronicLoad::connectedBattery = -1;
 boolean ElectronicLoad::isResultFresh = false;
 unsigned long ElectronicLoad::lastQueryTimestamp =0;
@@ -10,6 +12,7 @@ volatile boolean ElectronicLoad::dataSent= false;
 float ElectronicLoad::I = 0;
 float ElectronicLoad::U1 = 0;
 float ElectronicLoad::U2 = 0;
+float ElectronicLoad::updatePeriod = -1;
 
 uint8_t ElectronicLoad::spiDataOut[32];
 
@@ -109,7 +112,7 @@ int ElectronicLoad::sendData(uint8_t* data, int len, unsigned long timeout)
     delay(1);
     if (millis() - startMillis > timeout)
     {
-      Serial.println("timeout when waiting for the slave to poll data!!");
+      SerialManager::debugPrintln("timeout when waiting for the slave to poll data!!");
       return 1;
     }
   }
@@ -132,25 +135,25 @@ void ElectronicLoad::onData(uint8_t* data, size_t len)
 	isResultFresh = true;
 
 	
-    //Serial.println(parseSPIByte(data));
+    //SerialManager::debugPrintln(parseSPIByte(data));
     (parseSPIByte(data));
     U1=parseSPIFloat(data);
     U2=parseSPIFloat(data);
     I=parseSPIFloat(data);
     ::setTime(parseSPIUL(data));
-    //Serial.println(parseSPIFloat(data));
-    //Serial.println(parseSPIFloat(data));
-    //Serial.println("chksum ok?");
+    //SerialManager::debugPrintln(parseSPIFloat(data));
+    //SerialManager::debugPrintln(parseSPIFloat(data));
+    //SerialManager::debugPrintln("chksum ok?");
     //delay(1);//just as a test(FAILED, damnit...)
 
-    //Serial.println(isChksumOk(data));
+    //SerialManager::debugPrintln(isChksumOk(data));
 	
 }
 
 void ElectronicLoad::onDataSent()
 {
     digitalWrite(D0, LOW);
-    //Serial.println("Answer Sent");
+    //SerialManager::debugPrintln("Answer Sent");
     dataSent = true;
 }
 
@@ -198,7 +201,7 @@ int ElectronicLoad::requestTime()
 {
   queueByte(4);//request time
   sendData(spiDataOut, spiOutIndex);
-  Serial.println("Requesting time...");
+  //SerialManager::debugPrintln("Requesting time...");
   return 0;
 }
 
@@ -234,9 +237,11 @@ int ElectronicLoad::setTime(time_t theTime)
 
 int ElectronicLoad::setUpdatePeriod(float thePeriod)
 {
-	queueByte(2);//set period
-    queueFloat(thePeriod);
-    return sendData(spiDataOut, spiOutIndex);
+	ElectronicLoad::updatePeriod = thePeriod;
+	return 0;
+	//queueByte(2);//set period
+    //queueFloat(thePeriod);
+    //return sendData(spiDataOut, spiOutIndex);
 }
 
 int ElectronicLoad::getI(float * target)
@@ -298,6 +303,15 @@ void ElectronicLoad::recordLastQueryTimestamp()
 void ElectronicLoad::heartBeat()
 {
 	static unsigned long lastMillis;	
+	static unsigned long lastUpdateMillis;	
+	
+	if (updatePeriod > 0 && (millis() - lastUpdateMillis) > (updatePeriod * 1000))
+	{
+		lastUpdateMillis = millis();
+		ElectronicLoad::requestTime();//TODO: rename
+	}
+
+
 	static boolean currentHBState = false;
 	if (millis() - lastMillis > 1000)
 	{

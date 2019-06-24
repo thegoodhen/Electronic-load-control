@@ -6,6 +6,7 @@
 #include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include "SerialManager.h"
 
 using namespace std::placeholders;	
 WiFiUDP Udp;
@@ -22,13 +23,13 @@ Container* NTPManager::cont=0;
 
 void NTPManager::begin()
 {
-  Serial.print("IP number assigned by DHCP is ");
-  Serial.println(WiFi.localIP());
-  Serial.println("Starting UDP");
+  SerialManager::debugPrint("IP number assigned by DHCP is ");
+  SerialManager::debugPrintln(WiFi.localIP().toString());
+  SerialManager::debugPrintln("Starting UDP");
   Udp.begin(localPort);
-  Serial.print("Local port: ");
-  Serial.println(Udp.localPort());
-  Serial.println("waiting for sync");
+  SerialManager::debugPrint("Local port: ");
+  SerialManager::debugPrintln(String(Udp.localPort()));
+  SerialManager::debugPrintln("waiting for sync");
   //setSyncProvider(getNtpTime);
   //setSyncInterval(300);
 }
@@ -82,7 +83,7 @@ loadSettingsFromSpiffs();
 	{
 
 		GUI* gui = cont->getGUI();
-		Serial.println("Saving scheduling settings");
+		SerialManager::debugPrintln("Saving scheduling settings");
 
 		
 		String theServer= gui->find("tiNTPServer")->retrieveText(user);
@@ -116,27 +117,27 @@ void NTPManager::saveSettingsToSpiffs()
 
 	//parseLoadedSettings();
 	char* fname = "ntp.cfg";
-	SpiffsPersistentSettingsUtils::saveSettings(root, fname);
+	SpiffsManager::saveSettings(root, fname);
 	*/
 }
 
 void NTPManager::loadSettingsFromSpiffs()
 {
 
-	//Serial.println("nacitam nastaveni...");
+	//SerialManager::debugPrintln("nacitam nastaveni...");
 	StaticJsonBuffer<1000> jb;
 	StaticJsonBuffer<1000> *jbPtr = &jb;
 
 
 
 
-	JsonObject& root = SpiffsPersistentSettingsUtils::loadSettings(jbPtr, "ntp.cfg");
+	JsonObject& root = SpiffsManager::loadSettings(jbPtr, "ntp.cfg");
 	if (root["success"] == false)
 	{
-		Serial.println("failnulo to nacitani toho testu...");
+		SerialManager::debugPrintln("failnulo to nacitani toho testu...");
 	return;
 	}
-	Serial.println("nacetlo se nastaveni...");
+	SerialManager::debugPrintln("nacetlo se nastaveni...");
 
 	strlcpy(config.ntpServer,                   // <- destination
 	root["NTPServer"],
@@ -159,8 +160,8 @@ String NTPManager::dateToString(time_t _theDate)
 {
 	char returnString[40];
 	sprintf(returnString, "%d.%d. %d %02d:%02d:%02d", day(_theDate), month(_theDate), year(_theDate), hour(_theDate), minute(_theDate), second(_theDate));
-	//Serial.println("returnString");
-	//Serial.println(returnString);
+	//SerialManager::debugPrintln("returnString");
+	//SerialManager::debugPrintln(returnString);
 	return (String)returnString;
 	
 }
@@ -170,8 +171,8 @@ String NTPManager::periodToString(time_t _thePeriod)
 {
 	char returnString[40];
 	sprintf(returnString, "%dd:%dh:%dm", day(_thePeriod), hour(_thePeriod),minute(_thePeriod));
-	//Serial.println("returnString");
-	//Serial.println(returnString);
+	//SerialManager::debugPrintln("returnString");
+	//SerialManager::debugPrintln(returnString);
 	return (String)returnString;
 	
 }
@@ -201,18 +202,18 @@ void NTPManager::slightlyAdjustTime()
   IPAddress ntpServerIP; // NTP server's ip address
 
   while (Udp.parsePacket() > 0) ; // discard any previously received packets
-  Serial.println("Transmitted NTP Request");
+  SerialManager::debugPrintln("Transmitted NTP Request");
   // get a random server from the pool
   WiFi.hostByName(config.ntpServer, ntpServerIP);
-  Serial.print(config.ntpServer);
-  Serial.print(": ");
-  Serial.println(ntpServerIP);
+  SerialManager::debugPrint(config.ntpServer);
+  SerialManager::debugPrint(": ");
+  SerialManager::debugPrintln(ntpServerIP.toString());
   sendNTPpacket(ntpServerIP);
   uint32_t beginWait = millis();
   while (millis() - beginWait < 1500) {
     int size = Udp.parsePacket();
     if (size >= NTP_PACKET_SIZE) {
-      Serial.println("Received NTP Response");
+      SerialManager::debugPrintln("Received NTP Response");
       Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
       unsigned long secsSince1900;
       // convert four bytes starting at location 40 to a long integer
@@ -227,7 +228,7 @@ void NTPManager::slightlyAdjustTime()
 	  //the following will prevent the time to syncing near the minute rollovers, but who cares? I know I don't...
 	  if (abs(minute() - minute(NTPTime)) <= 5)//time isn't off by all that much
 	  {
-			Serial.println("Time is close enough, adjusting...");
+			SerialManager::debugPrintln("Time is close enough, adjusting...");
 
 			int yr = CalendarYrToTm(year());
 		    tmElements_t myElements = {second(NTPTime), minute(NTPTime), hour(), weekday(), day(), month(), yr };
@@ -237,12 +238,12 @@ void NTPManager::slightlyAdjustTime()
 	  }
 	  else
 	  {
-		  Serial.println("Time is off by too much, adjust it manually.");
+		  SerialManager::debugPrintln("Time is off by too much, adjust it manually.");
 		  return ;
 	  }
     }
   }
-  Serial.println("No NTP Response :-(");
+  SerialManager::debugPrintln("No NTP Response :-(");
   return ; // return 0 if unable to get the time
 
 }
@@ -250,6 +251,7 @@ void NTPManager::slightlyAdjustTime()
 
 time_t NTPManager::getNtpTime()
 {
+	return 0;//TODO: remove this thingy
 }
 
 // send an NTP request to the time server at the given address
@@ -307,8 +309,8 @@ boolean NTPManager::isDateValid(String theDate)
 		}
 		return true;
 	}
-		Serial.println(theDate);
-		Serial.println(n);
+		SerialManager::debugPrintln(theDate);
+
 	return false;
 }
 
@@ -317,7 +319,7 @@ boolean NTPManager::isPeriodValid(String thePeriod)
 {
 	long outArr[3];
 	int n = parserUtils::retrieveNLongs(thePeriod.c_str(), 3, outArr);
-	Serial.println(n);
+
 	if (n == 3)
 	{
 		if (outArr[0] < 0)
